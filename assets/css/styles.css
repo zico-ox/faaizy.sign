@@ -275,6 +275,19 @@ img {
   width: 200px;
   border-radius: .5rem;
 }
+
+.about__content {
+  text-align: center; /* Center the text and button within this content block */
+}
+
+.about__button { 
+  background-color: transparent;
+  color: var(--first-color);
+  border: 1.5px solid var(--first-color); 
+  box-shadow: none; /* Remove default shadow for this button */
+  margin-top: var(--mb-4); /* Add some space above the button */
+}
+
 /* Skills */
 .skill-box {
   display: grid;
@@ -511,6 +524,9 @@ img {
     align-items: center;
     text-align: initial;
   }
+  .about__content {
+    text-align: initial; /* Reset text alignment for larger screens */
+  }
   .skills__container {
     grid-template-columns: .7fr;
     justify-content: center;
@@ -617,4 +633,4 @@ img {
   font-size: 0.95rem;
   font-weight: 600;
 }
-}
+

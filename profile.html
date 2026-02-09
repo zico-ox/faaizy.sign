@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muhammad Fayiz - Profile/CV</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <!-- BOX ICONS -->
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css" rel="stylesheet">
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* Custom styles for profile page */
+        .profile__container {
+            max-width: 960px;
+            margin: 4rem auto 2rem;
+            padding: 2rem;
+            background-color: #fff;
+            box-shadow: 0 4px 25px rgba(14, 36, 49, 0.15);
+            border-radius: .5rem;
+        }
+        .profile__header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .profile__header h1 {
+            font-size: var(--big-font-size);
+            color: var(--first-color);
+            margin-bottom: .5rem;
+        }
+        .profile__header p {
+            font-size: var(--h2-font-size);
+            color: var(--second-color);
+        }
+        .profile__contact-info {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
+            border-top: 1px solid #eee;
+            padding-top: 1.5rem;
+        }
+        .profile__contact-item {
+            display: flex;
+            align-items: center;
+            color: var(--second-color);
+            text-decoration: none; /* Ensure links don't have underlines */
+        }
+        .profile__contact-item i {
+            font-size: 1.2rem;
+            margin-right: .5rem;
+            color: var(--first-color);
+        }
+        .profile__section {
+            margin-bottom: 3rem;
+        }
+        .profile__picture {
+            width: 250px; /* Adjust size as needed */
+            height: 250px;
+            border-radius: 10%; /* Make it circular */
+            object-fit: cover; /* Ensure image covers the area */
+            display: block; /* Make it a block element to apply auto margins */
+            margin: 0 auto 3rem auto; /* Center horizontally and add space below */
+        }
+        .profile__section-title {
+            font-size: var(--h2-font-size);
+            color: var(--first-color);
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--first-color);
+            padding-bottom: .5rem;
+        }
+        .profile__item {
+            margin-bottom: 1.5rem;
+        }
+        .profile__item h3 {
+            font-size: 1.1rem;
+            color: var(--second-color);
+            margin-bottom: .25rem;
+        }
+        .profile__item p {
+            font-size: var(--normal-font-size);
+            color: #64748b;
+        }
+        .profile__item ul {
+            list-style: disc;
+            margin-left: 1.5rem;
+            color: #64748b;
+        }
+        .profile__item ul li {
+            margin-bottom: .5rem;
+        }
+        .profile__skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        .profile__skill-item {
+            background-color: #f0f8ff; /* Light blue background */
+            padding: .75rem 1rem;
+            border-radius: .5rem;
+            text-align: center;
+            font-weight: var(--font-semi);
+            color: var(--second-color);
+            border: 1px solid var(--first-color);
+        }
+        .profile__download-cv {
+            text-align: center;
+            margin-top: 3rem;
+        }
+        .profile__download-cv .button {
+            margin: 0.5rem; /* Space between buttons */
+        }
+        @media screen and (max-width: 768px) {
+            .profile__container {
+                margin: 2rem auto;
+                padding: 1rem;
+            }
+            .profile__header h1 {
+                font-size: 2rem;
+            }
+            .profile__header p {
+                font-size: 1rem;
+            }
+            .profile__contact-info {
+                flex-direction: column;
+                align-items: flex-start;
+                padding-left: 1rem;
+            }
+            .profile__section-title {
+                font-size: 1.5rem;
+            }
+            .profile__skills-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="l-main">
+        <div class="profile__container bd-grid">
+            <img src="assets/img/about1.jpg" alt="Muhammad Fayiz Profile Picture" class="profile__picture">
+            <div class="profile__header">
+                <h1>Muhammad Fayiz</h1>
+                <p>Graphic Designer | Branding & Social Media Specialist</p>
+                <div class="profile__contact-info">
+                    <span class="profile__contact-item"><i class="bx bx-envelope"></i> fayizadany@gmail.com</span>
+                    <span class="profile__contact-item"><i class="bx bx-phone"></i> +91 9656 514 372</span>
+                    <a href="https://www.linkedin.com/in/yourprofile" target="_blank" class="profile__contact-item"><i class="bx bxl-linkedin"></i> LinkedIn</a>
+                    <a href="https://www.behance.net/yourprofile" target="_blank" class="profile__contact-item"><i class="bx bxl-behance"></i> Behance</a>
+                </div>
+            </div>
+
+            <div class="profile__section">
+                <h2 class="profile__section-title">Summary</h2>
+                <p>A highly creative and detail-oriented Graphic Designer with a strong passion for crafting visually compelling brand identities, engaging social media content, and impactful print materials. With a solid foundation in design principles and proficiency in Adobe Creative Suite, I am adept at translating client visions into innovative and effective visual solutions. Eager to contribute to dynamic teams and deliver exceptional design outcomes.</p>
+            </div>
+
+            <div class="profile__section">
+                <h2 class="profile__section-title">Skills</h2>
+                <div class="profile__skills-grid">
+                    <span class="profile__skill-item">Adobe Photoshop</span>
+                    <span class="profile__skill-item">Adobe Illustrator</span>
+                    <span class="profile__skill-item">Adobe InDesign</span>
+                    <span class="profile__skill-item">Video Editing</span>
+                    <span class="profile__skill-item">Branding & Identity</span>
+                    <span class="profile__skill-item">Social Media Design</span>
+                    <span class="profile__skill-item">Print Design (Posters, Flyers)</span>
+                   
+                    <span class="profile__skill-item">Layout Design</span>
+                </div>
+            </div>
+
+            <div class="profile__section">
+                <h2 class="profile__section-title">Experience</h2>
+                <div class="profile__item">
+                    <h3>Freelance Graphic Designer</h3>
+                    <p>Self-Employed | 2021 - Present</p>
+                    <ul>
+                        <li>Collaborated with diverse clients to develop unique brand identities, including logos, color palettes, and typography.</li>
+                        <li>Designed engaging social media graphics, banners, and ad creatives for various platforms, increasing client online presence.</li>
+                        <li>Created professional print materials such as brochures, flyers, posters, and business cards.</li>
+                        <li>Managed multiple projects simultaneously, ensuring timely delivery and client satisfaction.</li>
+                        <li>Utilized Adobe Creative Suite (Photoshop, Illustrator, InDesign) to produce high-quality visual assets.</li>
+                    </ul>
+                </div>
+                <!-- Add more experience items as needed -->
+            </div>
+
+            <div class="profile__section">
+                <h2 class="profile__section-title">Education</h2>
+                <div class="profile__item">
+                    <h3>Bachelor of Commerce (B.Com)</h3>
+                    <p>Indira Gandhi National Open University, New Delhi | 2022 - 2025</p>
+                    <p>Relevant coursework: Business Communication, Marketing Principles.</p>
+                </div>
+                <div class="profile__item">
+                    <h3>Graphic Design Certification</h3>
+                    <p>Alif Design Academy, Edavannappara | 2022</p>
+                    <p>Focused on advanced techniques in Adobe Photoshop, Illustrator, and InDesign.</p>
+                </div>
+            </div>
+
+            <div class="profile__section">
+                <h2 class="profile__section-title">Achievements</h2>
+                 <div class="profile__item">
+                    <h3>Certificate of Excellence in Media and Content</h3>
+                    <p>Madin Intellectual Conclave | 2025</p>
+                     <ul>
+                        <li>Awarded for outstanding contribution in creating engaging media content and managing digital presence during the conclave.</li>
+                    </ul>
+                </div>
+                <div class="profile__item">
+                    <h3>Award for Best Media Coordinator</h3>
+                    <p>Al Irshad School | 2024</p>
+                    <ul>
+                        <li>Recognized for exceptional leadership in coordinating media activities and producing high-quality visual content for school events.</li>
+                    </ul>
+                </div>
+               
+                <!-- Add more achievement items as needed -->
+            </div>
+
+            <div class="profile__download-cv">
+                <a href="assets/docs/Muhammad_Fayiz_CV.pdf" download class="button">Download Full CV (PDF)</a>
+                <a href="index.html" class="button about__button">Back to Portfolio</a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
