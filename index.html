@@ -90,6 +90,13 @@
         background-color: var(--first-color);
         color: #fff;
       }
+
+      /* Custom: Make the top work container 2 columns to increase image size */
+      @media screen and (min-width: 768px) {
+        .work__container.work__featured {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
     </style>
   </head>
   <body>
@@ -236,25 +243,33 @@
       <section class="work section" id="work">
         <h2 class="section-title">Work</h2>
 
+        <div class="work__container work__featured bd-grid">
+          <div class="work__img">
+            <img src="assets/img/f1.png" alt="" />
+          </div>
+          <div class="work__img">
+            <img src="assets/img/ss.png" alt="" />
+          </div>
+        </div>
         <div class="work__container bd-grid">
-          <a href="" class="work__img">
+          <div class="work__img">
             <img src="assets/img/w3.jpg" alt="" />
-          </a>
-          <a href="" class="work__img">
+          </div>
+          <div class="work__img">
             <img src="assets/img/menu.jpg" alt="" />
-          </a>
-          <a href="" class="work__img">
+          </div>
+          <div class="work__img">
             <img src="assets/img/w2.jpg" alt="" />
-          </a>
-          <a href="" class="work__img">
+          </div>
+          <div class="work__img">
             <img src="assets/img/layout.jpg" alt="" />
-          </a>
-          <a href="" class="work__img">
-            <img src="assets/img/w5.jpg" alt="" />
-          </a>
-          <a href="" class="work__img">
+          </div>
+          <div class="work__img">
+            <img src="assets/img/w7.jpg" alt="" />
+          </div>
+          <div class="work__img">
             <img src="assets/img/w1.jpg" alt="" />
-          </a>
+          </div>
         </div>
       </section>
 
