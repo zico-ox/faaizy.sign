@@ -83,6 +83,7 @@
                 <option value="Pending">Pending</option>
                 <option value="Accept">Accept</option>
                 <option value="Reject">Reject</option>
+                <option value="Paid">Paid</option>
             </select>
         </div>
         <button onclick="toggleForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-xl shadow-md transition-all flex items-center">
@@ -267,12 +268,13 @@
             const totalFixed = totalWorkCount * FIXED_SALARY;
             const totalSales = works.reduce((sum, w) => sum + w.sales, 0);
             const totalComm = totalSales * COMMISSION_RATE;
+            const totalPaidComm = works.filter(w => w.status === 'Paid').reduce((sum, w) => sum + (w.sales * COMMISSION_RATE), 0);
 
             // 2. Update Dashboard
             dashTotalWork.innerText = totalWorkCount;
             dashTotalFixed.innerText = totalFixed;
             dashTotalSales.innerText = totalSales;
-            dashTotalComm.innerText = totalComm;
+            dashTotalComm.innerText = `${totalComm} / ${totalPaidComm}`;
 
             // 3. Render Table
             tableBody.innerHTML = '';
@@ -320,6 +322,8 @@
 
                     if (currentStatus === 'Accept') {
                         statusSelectClass = 'bg-emerald-50 border-emerald-200 text-emerald-700';
+                    } else if (currentStatus === 'Paid') {
+                        statusSelectClass = 'bg-teal-50 border-teal-200 text-teal-700';
                     } else if (currentStatus === 'Reject') {
                         rowBgClass = 'bg-red-50 hover:bg-red-100';
                         statusSelectClass = 'bg-red-50 border-red-200 text-red-700';
@@ -345,6 +349,7 @@
                                 <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
                                 <option value="Accept" ${currentStatus === 'Accept' ? 'selected' : ''}>Accept</option>
                                 <option value="Reject" ${currentStatus === 'Reject' ? 'selected' : ''}>Reject</option>
+                                <option value="Paid" ${currentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
                             </select>
                         </td>
                         <td class="p-5">
