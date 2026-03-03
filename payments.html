@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -87,9 +89,17 @@
                 <option value="Paid">Paid</option>
             </select>
         </div>
-        <button onclick="toggleForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-xl shadow-md transition-all flex items-center">
-            <i class="fas fa-plus mr-2"></i> Add New Work
-        </button>
+        <div class="flex gap-3">
+            <button onclick="openAgentModal()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-xl shadow-md transition-all flex items-center">
+                <i class="fas fa-users-cog mr-2"></i> Manage Agents
+            </button>
+            <button onclick="exportPDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-6 rounded-xl shadow-md transition-all flex items-center">
+                <i class="fas fa-file-pdf mr-2"></i> Export PDF
+            </button>
+            <button onclick="toggleForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-xl shadow-md transition-all flex items-center">
+                <i class="fas fa-plus mr-2"></i> Add New Work
+            </button>
+        </div>
     </div>
 
     <!-- INPUT FORM -->
@@ -108,10 +118,7 @@
             <div class="w-full md:w-1/5">
                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Agent</label>
                 <select id="inputAgent" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-slate-700">
-                    <option value="Hiba">Hiba</option>
-                    <option value="T Shirt">T Shirt</option>
-                    <option value="Adil">Adil</option>
-                    <option value="Arathy">Arathy</option>
+                    <!-- Populated by JS -->
                 </select>
             </div>
             <div class="w-full md:w-2/5">
@@ -157,11 +164,30 @@
         </div>
     </div>
 
+    <!-- AGENT MANAGEMENT MODAL -->
+    <div id="agentModal" class="fixed inset-0 bg-slate-900/50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 transform transition-all scale-100">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-slate-800">Manage Agents</h3>
+                <button onclick="closeAgentModal()" class="text-slate-400 hover:text-slate-600 transition-colors"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="space-y-3 mb-6 max-h-[60vh] overflow-y-auto pr-2" id="agentList">
+                <!-- Agent items injected here -->
+            </div>
+            <div class="flex gap-2 pt-4 border-t border-slate-100">
+                <input type="text" id="newAgentName" placeholder="New Agent Name" class="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-sm">
+                <button onclick="addNewAgent()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl shadow-md transition-colors"><i class="fas fa-plus"></i></button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- CONFIGURATION ---
         const FIXED_SALARY = 30;
         const COMMISSION_RATE = 5;
         const FIREBASE_URL = "https://camp-02-default-rtdb.firebaseio.com/works.json";
+        const AGENTS_FIREBASE_URL = "https://camp-02-default-rtdb.firebaseio.com/agents.json";
+        const AGENT_COLORS = ['blue', 'purple', 'orange', 'pink', 'emerald', 'cyan', 'rose', 'indigo', 'teal'];
 
         // Display current date in header
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -170,6 +196,7 @@
         // --- STATE MANAGEMENT ---
         // Load from local storage or initialize empty array
         let works = [];
+        let agents = [];
 
         // --- DOM ELEMENTS ---
         const form = document.getElementById('workForm');
@@ -187,6 +214,164 @@
         document.getElementById('inputDate').valueAsDate = new Date();
 
         // --- FUNCTIONS ---
+
+        async function loadAgents() {
+            try {
+                const response = await fetch(AGENTS_FIREBASE_URL);
+                const data = await response.json();
+                // Default agents if none exist
+                agents = data || ['Hiba', 'T Shirt', 'Adil', 'Arathy'];
+                updateDropdowns();
+            } catch (error) {
+                console.error("Error loading agents:", error);
+                agents = ['Hiba', 'T Shirt', 'Adil', 'Arathy'];
+                updateDropdowns();
+            }
+        }
+
+        async function saveAgents() {
+            try {
+                await fetch(AGENTS_FIREBASE_URL, {
+                    method: 'PUT',
+                    body: JSON.stringify(agents)
+                });
+                updateDropdowns();
+            } catch (error) {
+                console.error("Error saving agents:", error);
+            }
+        }
+
+        function updateDropdowns() {
+            const filterSelect = document.getElementById('filterAgent');
+            const inputSelect = document.getElementById('inputAgent');
+            const currentFilter = filterSelect.value;
+
+            // Update Filter
+            let filterHtml = '<option value="all">All Agents</option>';
+            agents.forEach(agent => {
+                filterHtml += `<option value="${agent}">${agent}</option>`;
+            });
+            filterSelect.innerHTML = filterHtml;
+            filterSelect.value = currentFilter; // Restore selection if valid
+
+            // Update Input
+            let inputHtml = '';
+            agents.forEach(agent => {
+                inputHtml += `<option value="${agent}">${agent}</option>`;
+            });
+            inputSelect.innerHTML = inputHtml;
+
+            render(); // Re-render table to update row dropdowns
+        }
+
+        // --- AGENT MODAL FUNCTIONS ---
+        function openAgentModal() {
+            document.getElementById('agentModal').classList.remove('hidden');
+            renderAgentList();
+        }
+
+        function closeAgentModal() {
+            document.getElementById('agentModal').classList.add('hidden');
+        }
+
+        function renderAgentList() {
+            const list = document.getElementById('agentList');
+            list.innerHTML = agents.map((agent, index) => `
+                <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <span class="font-medium text-slate-700">${agent}</span>
+                    <div class="flex gap-2">
+                        <button onclick="editAgent(${index})" class="text-blue-500 hover:bg-blue-100 p-2 rounded-lg transition-colors"><i class="fas fa-pen"></i></button>
+                        <button onclick="deleteAgent(${index})" class="text-red-500 hover:bg-red-100 p-2 rounded-lg transition-colors"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addNewAgent() {
+            const input = document.getElementById('newAgentName');
+            const name = input.value.trim();
+            if (name && !agents.includes(name)) {
+                agents.push(name);
+                input.value = '';
+                saveAgents();
+                renderAgentList();
+            } else if (agents.includes(name)) {
+                alert('Agent already exists!');
+            }
+        }
+
+        function editAgent(index) {
+            const oldName = agents[index];
+            const newName = prompt("Edit agent name:", oldName);
+            
+            if (newName && newName.trim() !== "" && newName !== oldName) {
+                // Update agent list
+                agents[index] = newName.trim();
+                saveAgents();
+
+                // Update existing works
+                let worksUpdated = false;
+                works.forEach(work => {
+                    if (work.agent === oldName) {
+                        work.agent = newName.trim();
+                        worksUpdated = true;
+                    }
+                });
+
+                if (worksUpdated) saveData();
+                renderAgentList();
+            }
+        }
+
+        function deleteAgent(index) {
+            if (confirm(`Delete agent "${agents[index]}"?`)) {
+                agents.splice(index, 1);
+                saveAgents();
+                renderAgentList();
+            }
+        }
+
+        function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Get current filters
+            const filterAgent = document.getElementById('filterAgent').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+
+            // Filter data (same logic as render)
+            const filteredWorks = works.filter(work => {
+                const agent = work.agent || 'Agent #1';
+                const status = work.status || 'Pending';
+                return (filterAgent === 'all' || agent === filterAgent) && 
+                       (filterStatus === 'all' || status === filterStatus);
+            });
+
+            // Sort by date (newest first)
+            const sortedWorks = [...filteredWorks].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // Prepare data for PDF
+            const tableData = sortedWorks.map(work => {
+                return [
+                    work.date,
+                    work.name,
+                    work.agent || 'Hiba',
+                    work.status || 'Pending',
+                    work.sales,
+                    `Rs. ${work.sales * COMMISSION_RATE}`
+                ];
+            });
+
+            doc.text("Work Payment Dashboard", 14, 15);
+            doc.autoTable({
+                head: [['Date', 'Work Name', 'Agent', 'Status', 'Sales', 'Commission']],
+                body: tableData,
+                startY: 20,
+                theme: 'grid',
+                headStyles: { fillColor: [37, 99, 235] } // Blue color
+            });
+            doc.save('work_payments.pdf');
+        }
 
         function toggleForm() {
             formContainer.classList.toggle('hidden');
@@ -307,20 +492,18 @@
                     const currentAgent = work.agent || 'Hiba';
                     const currentStatus = work.status || 'Pending';
                     
-                    // Styling based on Agent and Status
-                    let agentBorderClass = 'border-l-blue-500';
-                    let agentSelectClass = 'bg-blue-50 border-blue-200 text-blue-700';
+                    // Generate Agent Options dynamically
+                    const agentOptions = agents.map(a => 
+                        `<option value="${a}" ${currentAgent === a ? 'selected' : ''}>${a}</option>`
+                    ).join('');
 
-                    if (currentAgent === 'T Shirt') {
-                        agentBorderClass = 'border-l-purple-500';
-                        agentSelectClass = 'bg-purple-50 border-purple-200 text-purple-700';
-                    } else if (currentAgent === 'Adil') {
-                        agentBorderClass = 'border-l-orange-500';
-                        agentSelectClass = 'bg-orange-50 border-orange-200 text-orange-700';
-                    } else if (currentAgent === 'Arathy') {
-                        agentBorderClass = 'border-l-pink-500';
-                        agentSelectClass = 'bg-pink-50 border-pink-200 text-pink-700';
-                    }
+                    // Styling based on Agent and Status
+                    // Dynamic Color Assignment
+                    const agentIndex = agents.indexOf(currentAgent);
+                    const colorName = AGENT_COLORS[(agentIndex >= 0 ? agentIndex : 0) % AGENT_COLORS.length];
+                    
+                    const agentBorderClass = `border-l-${colorName}-500`;
+                    const agentSelectClass = `bg-${colorName}-50 border-${colorName}-200 text-${colorName}-700`;
 
                     let rowBgClass = 'bg-white hover:bg-slate-50';
                     let statusSelectClass = 'bg-amber-50 border-amber-200 text-amber-700'; // Default Pending
@@ -344,10 +527,7 @@
                         <td class="p-5 font-medium text-slate-800">${work.name}</td>
                         <td class="p-5">
                             <select onchange="updateField(${work.id}, 'agent', this.value)" class="${agentSelectClass} border text-sm rounded-lg block w-full p-2 outline-none font-medium">
-                                <option value="Hiba" ${currentAgent === 'Hiba' ? 'selected' : ''}>Hiba</option>
-                                <option value="T Shirt" ${currentAgent === 'T Shirt' ? 'selected' : ''}>T Shirt</option>
-                                <option value="Adil" ${currentAgent === 'Adil' ? 'selected' : ''}>Adil</option>
-                                <option value="Arathy" ${currentAgent === 'Arathy' ? 'selected' : ''}>Arathy</option>
+                                ${agentOptions}
                             </select>
                         </td>
                         <td class="p-5">
@@ -384,6 +564,7 @@
         // --- INITIALIZATION ---
         form.addEventListener('submit', addWork);
         loadData();
+        loadAgents();
 
     </script>
 </body>
