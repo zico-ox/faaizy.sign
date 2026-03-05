@@ -92,6 +92,9 @@
                 <option value="Paid">Paid</option>
             </select>
             <input type="month" id="filterMonth" onchange="render()" class="px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 text-sm shadow-sm w-full md:w-auto">
+            <button onclick="resetFilters()" class="bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-300 p-2 rounded-xl transition-all shadow-sm" title="Reset Filters">
+                <i class="fas fa-undo-alt"></i>
+            </button>
         </div>
         <div class="flex gap-3">
             <button onclick="openAgentModal()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-xl shadow-md transition-all flex items-center">
@@ -533,23 +536,14 @@
             document.getElementById('agentDetailsModal').classList.add('hidden');
         }
 
+        function resetFilters() {
+            document.getElementById('filterAgent').value = 'all';
+            document.getElementById('filterStatus').value = 'all';
+            document.getElementById('filterMonth').value = '';
+            render();
+        }
+
         function render() {
-            // 1. Calculate Totals
-            const totalWorkCount = works.length;
-            const totalFixed = totalWorkCount * FIXED_SALARY;
-            const totalSales = works.reduce((sum, w) => sum + w.sales, 0);
-            const totalComm = totalSales * COMMISSION_RATE;
-            const totalPaidComm = works.filter(w => w.status === 'Paid').reduce((sum, w) => sum + (w.sales * COMMISSION_RATE), 0);
-
-            // 2. Update Dashboard
-            dashTotalWork.innerText = totalWorkCount;
-            dashTotalFixed.innerText = totalFixed;
-            dashTotalSales.innerText = totalSales;
-            dashTotalComm.innerText = `${totalComm} / ${totalPaidComm}`;
-
-            // 3. Render Table
-            tableBody.innerHTML = '';
-            
             // Filter Logic
             const filterAgent = document.getElementById('filterAgent').value;
             const filterStatus = document.getElementById('filterStatus').value;
@@ -564,6 +558,22 @@
                        monthMatch;
             });
 
+            // 1. Calculate Totals (Based on Filtered Data)
+            const totalWorkCount = filteredWorks.length;
+            const totalFixed = totalWorkCount * FIXED_SALARY;
+            const totalSales = filteredWorks.reduce((sum, w) => sum + (parseInt(w.sales) || 0), 0);
+            const totalComm = totalSales * COMMISSION_RATE;
+            const totalPaidComm = filteredWorks.filter(w => w.status === 'Paid').reduce((sum, w) => sum + ((parseInt(w.sales) || 0) * COMMISSION_RATE), 0);
+
+            // 2. Update Dashboard
+            dashTotalWork.innerText = totalWorkCount;
+            dashTotalFixed.innerText = totalFixed;
+            dashTotalSales.innerText = totalSales;
+            dashTotalComm.innerText = `${totalComm} / ${totalPaidComm}`;
+
+            // 3. Render Table
+            tableBody.innerHTML = '';
+
             // Calculate Agent Sales based on filtered data
             const agentSales = {};
             agents.forEach(agent => agentSales[agent] = 0);
@@ -574,7 +584,11 @@
                 agentSales[agent] += (parseInt(work.sales) || 0);
             });
 
-            document.getElementById('agentStatsContainer').innerHTML = Object.entries(agentSales).map(([agent, sales]) => {
+            // Determine which agents to display based on filter
+            const displayAgents = filterAgent === 'all' ? agents : agents.filter(a => a === filterAgent);
+
+            document.getElementById('agentStatsContainer').innerHTML = displayAgents.map(agent => {
+                const sales = agentSales[agent];
                 const agentIndex = agents.indexOf(agent);
                 const colorName = AGENT_COLORS[(agentIndex >= 0 ? agentIndex : 0) % AGENT_COLORS.length];
                 return `
