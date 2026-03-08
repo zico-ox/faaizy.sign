@@ -77,6 +77,7 @@
     <!-- FILTERS AND ADD BUTTON -->
     <div class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex gap-3 w-full md:w-auto">
+            <input type="text" id="filterSearch" onkeyup="render()" placeholder="Search work..." class="px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 text-sm shadow-sm w-full md:w-auto">
             <select id="filterAgent" onchange="render()" class="px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 text-sm shadow-sm w-full md:w-auto">
                 <option value="all">All Agents</option>
                 <option value="Hiba">Hiba</option>
@@ -97,11 +98,11 @@
             </button>
         </div>
         <div class="flex gap-3">
-            <button onclick="openAgentModal()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-xl shadow-md transition-all flex items-center">
-                <i class="fas fa-users-cog mr-2"></i> Manage Agents
+            <button onclick="openAgentModal()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-all flex items-center" title="Manage Agents">
+                <i class="fas fa-users-cog"></i>
             </button>
-            <button onclick="exportPDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-6 rounded-xl shadow-md transition-all flex items-center">
-                <i class="fas fa-file-pdf mr-2"></i> Export PDF
+            <button onclick="exportPDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-all flex items-center" title="Export PDF">
+                <i class="fas fa-file-pdf"></i>
             </button>
             <button onclick="toggleForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-xl shadow-md transition-all flex items-center">
                 <i class="fas fa-plus mr-2"></i> Add New Work
@@ -373,15 +374,17 @@
             const filterAgent = document.getElementById('filterAgent').value;
             const filterStatus = document.getElementById('filterStatus').value;
             const filterMonth = document.getElementById('filterMonth').value;
+            const searchQuery = document.getElementById('filterSearch').value.toLowerCase();
 
             // Filter data (same logic as render)
             const filteredWorks = works.filter(work => {
                 const agent = work.agent || 'Agent #1';
                 const status = work.status || 'Pending';
                 const monthMatch = filterMonth ? work.date.startsWith(filterMonth) : true;
+                const nameMatch = (work.name || '').toLowerCase().includes(searchQuery);
                 return (filterAgent === 'all' || agent === filterAgent) && 
                        (filterStatus === 'all' || status === filterStatus) &&
-                       monthMatch;
+                       monthMatch && nameMatch;
             });
 
             // Sort by date (newest first)
@@ -456,7 +459,7 @@
 
             works.push(newWork);
             document.getElementById('inputName').value = ''; // Clear name input
-            toggleForm(); // Hide form after adding
+            document.getElementById('inputName').focus(); // Keep focus on name input
             saveData();
         }
 
@@ -540,6 +543,7 @@
             document.getElementById('filterAgent').value = 'all';
             document.getElementById('filterStatus').value = 'all';
             document.getElementById('filterMonth').value = '';
+            document.getElementById('filterSearch').value = '';
             render();
         }
 
@@ -548,14 +552,16 @@
             const filterAgent = document.getElementById('filterAgent').value;
             const filterStatus = document.getElementById('filterStatus').value;
             const filterMonth = document.getElementById('filterMonth').value;
+            const searchQuery = document.getElementById('filterSearch').value.toLowerCase();
 
             const filteredWorks = works.filter(work => {
                 const agent = work.agent || 'Agent #1';
                 const status = work.status || 'Pending';
                 const monthMatch = filterMonth ? work.date.startsWith(filterMonth) : true;
+                const nameMatch = (work.name || '').toLowerCase().includes(searchQuery);
                 return (filterAgent === 'all' || agent === filterAgent) && 
                        (filterStatus === 'all' || status === filterStatus) &&
-                       monthMatch;
+                       monthMatch && nameMatch;
             });
 
             // 1. Calculate Totals (Based on Filtered Data)
