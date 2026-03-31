@@ -26,6 +26,9 @@
         <div class="text-sm text-slate-400 font-medium bg-white px-4 py-2 rounded-full shadow-sm border border-slate-100">
             <i class="fas fa-calendar-alt mr-2"></i> <span id="currentDateDisplay"></span>
         </div>
+            <div>
+                <a href="analysis.html" class="inline-block bg-blue-600 text-white px-5 py-2 rounded-full font-semibold shadow hover:bg-blue-700 transition">Analysis</a>
+            </div>
     </div>
 
     <!-- DASHBOARD STATS -->
@@ -578,6 +581,7 @@
             dashTotalComm.innerText = `${totalComm} / ${totalPaidComm}`;
 
             // 3. Render Table
+            // 3. Render Table (Work List)
             tableBody.innerHTML = '';
 
             // Calculate Agent Sales based on filtered data
