@@ -21,11 +21,11 @@
     <!-- HEADER -->
     <div class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Sales & Profit Analysis</h1>
+            <h1 id="analysisHeaderTitle" class="text-3xl font-bold text-slate-900 tracking-tight">Sales & Profit Analysis</h1>
             <p class="text-slate-500 mt-1">Detailed breakdown of your work, sales, and commissions.</p>
         </div>
         <div>
-            <a href="payments.html" class="inline-block bg-blue-600 text-white px-5 py-2 rounded-full font-semibold shadow hover:bg-blue-700 transition flex items-center gap-2">
+            <a id="backToDashboardBtn" href="payments.html" class="inline-block bg-blue-600 text-white px-5 py-2 rounded-full font-semibold shadow hover:bg-blue-700 transition flex items-center gap-2">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard
             </a>
         </div>
@@ -33,12 +33,12 @@
 
     <!-- P&L Analysis Section -->
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8">
-        <h2 class="text-xl font-semibold mb-4 text-slate-800">P&amp;L Analysis</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <h2 id="plAnalysisHeader" class="text-xl font-semibold mb-4 text-slate-800">P&amp;L Analysis</h2>
+        <div id="plGridContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Total Fixed Salary -->
-            <div class="bg-blue-50 p-6 rounded-xl card-hover relative overflow-hidden">
+            <div id="fixedSalaryCard" class="bg-blue-50 p-6 rounded-xl card-hover relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-4 opacity-10">
-                    <i class="fas fa-wallet text-6xl text-blue-600"></i>
+                    <i id="fixedSalaryIcon" class="fas fa-wallet text-6xl text-blue-600"></i>
                 </div>
                 <div class="text-xs text-slate-500 font-bold uppercase mb-1">Total Fixed Salary</div>
                 <div class="text-3xl font-bold text-blue-700" id="pl-fixed-salary">₹0</div>
@@ -52,7 +52,7 @@
                 <div class="text-3xl font-bold text-green-700" id="pl-commission">₹0</div>
             </div>
             <!-- P&L (Commission - Fixed) -->
-            <div class="bg-yellow-50 p-6 rounded-xl card-hover relative overflow-hidden">
+            <div id="plDiffCard" class="bg-yellow-50 p-6 rounded-xl card-hover relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-4 opacity-10">
                     <i class="fas fa-balance-scale text-6xl text-yellow-600"></i>
                 </div>
@@ -95,7 +95,7 @@
         <div class="flex gap-3 w-full md:w-auto">
             <input type="month" id="analysisFilterMonth" onchange="renderAnalysis()" class="px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 text-sm shadow-sm w-full md:w-auto">
             <input type="date" id="analysisFilterDate" onchange="renderAnalysis()" class="px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 text-sm shadow-sm w-full md:w-auto">
-            <button onclick="resetAnalysisFilters()" class="bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-300 p-2 rounded-xl transition-all shadow-sm" title="Reset Filters">
+            <button id="resetFiltersBtn" onclick="resetAnalysisFilters()" class="bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-300 p-2 rounded-xl transition-all shadow-sm" title="Reset Filters">
                 <i class="fas fa-undo-alt"></i>
             </button>
         </div>
@@ -111,7 +111,7 @@
                         <th class="p-5">Agent Name</th>
                         <th class="p-5 text-center">Total Work</th>
                         <th class="p-5 text-center">Total Sales</th>
-                        <th class="p-5 text-right">P&amp;L (₹)</th>
+                        <th id="agentPLHeader" class="p-5 text-right">P&amp;L (₹)</th>
                         <th class="p-5 text-center">Work Status</th>
                     </tr>
                 </thead>
@@ -129,11 +129,78 @@
         </div>
     <script>
         // --- CONFIGURATION ---
-        const WORKS_URL = "https://camp-02-default-rtdb.firebaseio.com/works.json";
-        const AGENTS_URL = "https://camp-02-default-rtdb.firebaseio.com/agents.json";
+        const urlParams = new URLSearchParams(window.location.search);
+        const isClothix = urlParams.get('type') === 'clothix';
+
+        let WORKS_URL = "https://camp-02-default-rtdb.firebaseio.com/works.json";
+        let AGENTS_URL = "https://camp-02-default-rtdb.firebaseio.com/agents.json";
+
+        if (isClothix) {
+            WORKS_URL = "https://camp-02-default-rtdb.firebaseio.com/clothix/works.json";
+            AGENTS_URL = "https://camp-02-default-rtdb.firebaseio.com/clothix/agents.json";
+        }
+
         const FIXED_SALARY = 30;
         const COMMISSION_RATE = 5;
         const AGENT_COLORS = ['blue', 'purple', 'orange', 'pink', 'emerald', 'cyan', 'rose', 'indigo', 'teal'];
+
+        function initPage() {
+            if (isClothix) {
+                // Update Title
+                document.title = "Clothix Sales & Profit Analysis";
+                
+                // Update Header Title
+                const headerTitle = document.getElementById('analysisHeaderTitle');
+                if (headerTitle) headerTitle.textContent = "Clothix Sales & Profit Analysis";
+
+                // Update Back Button
+                const backBtn = document.getElementById('backToDashboardBtn');
+                if (backBtn) {
+                    backBtn.href = "clothix.html";
+                    backBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                    backBtn.classList.add('bg-violet-600', 'hover:bg-violet-700');
+                }
+
+                // Update P&L Analysis Header
+                const plHeader = document.getElementById('plAnalysisHeader');
+                if (plHeader) plHeader.textContent = "Commission Analysis";
+
+                // Hide Fixed Salary Card and P&L Diff Card
+                const fixedSalaryCard = document.getElementById('fixedSalaryCard');
+                if (fixedSalaryCard) fixedSalaryCard.style.display = 'none';
+                
+                const plDiffCard = document.getElementById('plDiffCard');
+                if (plDiffCard) plDiffCard.style.display = 'none';
+
+                // Change Grid columns layout to 1 column since we only have Commission card left
+                const plGrid = document.getElementById('plGridContainer');
+                if (plGrid) {
+                    plGrid.classList.remove('md:grid-cols-3');
+                    plGrid.classList.add('md:grid-cols-1');
+                }
+
+                // Update Table PL Header
+                const agentPLHeader = document.getElementById('agentPLHeader');
+                if (agentPLHeader) agentPLHeader.textContent = "Commission (₹)";
+
+                // Update filter rings
+                const filterMonth = document.getElementById('analysisFilterMonth');
+                if (filterMonth) {
+                    filterMonth.classList.remove('focus:ring-blue-500');
+                    filterMonth.classList.add('focus:ring-violet-500');
+                }
+                const filterDate = document.getElementById('analysisFilterDate');
+                if (filterDate) {
+                    filterDate.classList.remove('focus:ring-blue-500');
+                    filterDate.classList.add('focus:ring-violet-500');
+                }
+                const resetBtn = document.getElementById('resetFiltersBtn');
+                if (resetBtn) {
+                    resetBtn.classList.remove('hover:text-blue-600', 'hover:border-blue-300');
+                    resetBtn.classList.add('hover:text-violet-600', 'hover:border-violet-300');
+                }
+            }
+        }
 
         // --- AGENT DETAILS MODAL ---
         function showAgentDetails(agentName) {
@@ -228,7 +295,8 @@
             // --- Calculate Global Stats ---
             const totalWorkEntries = filteredWorks.length;
             const totalSalesCount = filteredWorks.reduce((sum, w) => sum + (parseInt(w.sales) || 0), 0);
-            const totalFixedSalary = totalWorkEntries * FIXED_SALARY;
+            const currentFixedSalaryRate = isClothix ? 0 : FIXED_SALARY;
+            const totalFixedSalary = totalWorkEntries * currentFixedSalaryRate;
             const totalCommissionEarned = totalSalesCount * COMMISSION_RATE; // Total commission if all sales were paid
             const netProfitLoss = totalCommissionEarned - totalFixedSalary; // P&L based on filtered sales
             const totalPaidCommission = filteredWorks.filter(w => w.status === 'Paid').reduce((sum, w) => sum + ((parseInt(w.sales) || 0) * COMMISSION_RATE), 0); // Commission from filtered paid works
@@ -257,27 +325,45 @@
                     const agentWorks = filteredWorks.filter(w => (w.agent || 'Unknown') === agent); // Handle potential undefined agent
                     const agentTotalWork = agentWorks.length;
                     const agentTotalSales = agentWorks.reduce((sum, w) => sum + (parseInt(w.sales) || 0), 0);
-                    const agentFixedCost = agentTotalWork * FIXED_SALARY;
+                    const agentFixedCost = agentTotalWork * (isClothix ? 0 : FIXED_SALARY);
                     const agentCommissionEarned = agentTotalSales * COMMISSION_RATE;
                     const agentPL = agentCommissionEarned - agentFixedCost;
 
                     // Calculate work status counts for the agent
-                    const acceptedWorks = agentWorks.filter(w => w.status === 'Accept').length;
-                    const pendingWorks = agentWorks.filter(w => w.status === 'Pending').length;
-                    const paidWorks = agentWorks.filter(w => w.status === 'Paid').length;
+                    let workStatusSummaryHTML = '';
+                    if (isClothix) {
+                        const placedWorks = agentWorks.filter(w => w.status === 'Placed').length;
+                        const paidWorks = agentWorks.filter(w => w.status === 'Paid').length;
+                        const canceledWorks = agentWorks.filter(w => w.status === 'Canceled').length;
 
-                    // Create colored badges for each status
-                    const workStatusSummaryHTML = ` 
-                        <span onclick="showAgentDetails('${agent}', '${currentFilterMonth}', '${currentFilterDate}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors">
-                            A: ${acceptedWorks}
-                        </span>
-                        <span onclick="showAgentDetails('${agent}', '${currentFilterMonth}', '${currentFilterDate}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors">
-                            P: ${pendingWorks}
-                        </span>
-                        <span onclick="showAgentDetails('${agent}', '${currentFilterMonth}', '${currentFilterDate}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors">
-                            Pd: ${paidWorks}
-                        </span> 
-                    `;
+                        workStatusSummaryHTML = ` 
+                            <span onclick="showAgentDetails('${agent}', '${currentFilterMonth}', '${currentFilterDate}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors">
+                                Pl: ${placedWorks}
+                            </span>
+                            <span onclick="showAgentDetails('${agent}', '${currentFilterMonth}', '${currentFilterDate}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800 hover:bg-teal-200 transition-colors">
+                                Pd: ${paidWorks}
+                            </span> 
+                            <span onclick="showAgentDetails('${agent}', '${currentFilterMonth}', '${currentFilterDate}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800 hover:bg-rose-200 transition-colors">
+                                C: ${canceledWorks}
+                            </span>
+                        `;
+                    } else {
+                        const acceptedWorks = agentWorks.filter(w => w.status === 'Accept').length;
+                        const pendingWorks = agentWorks.filter(w => w.status === 'Pending').length;
+                        const paidWorks = agentWorks.filter(w => w.status === 'Paid').length;
+
+                        workStatusSummaryHTML = ` 
+                            <span onclick="showAgentDetails('${agent}', '${currentFilterMonth}', '${currentFilterDate}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors">
+                                A: ${acceptedWorks}
+                            </span>
+                            <span onclick="showAgentDetails('${agent}', '${currentFilterMonth}', '${currentFilterDate}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors">
+                                P: ${pendingWorks}
+                            </span>
+                            <span onclick="showAgentDetails('${agent}', '${currentFilterMonth}', '${currentFilterDate}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors">
+                                Pd: ${paidWorks}
+                            </span> 
+                        `;
+                    }
 
                     const row = document.createElement('tr');
                     row.className = 'hover:bg-slate-50 transition-colors';
@@ -294,7 +380,10 @@
         }
 
         // Run on page load
-        document.addEventListener('DOMContentLoaded', renderAnalysis);
+        document.addEventListener('DOMContentLoaded', () => {
+            initPage();
+            renderAnalysis();
+        });
     </script>
 
     <!-- AGENT DETAILS MODAL -->

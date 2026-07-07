@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clothix Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            background-image: radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.02) 0, transparent 50%),
+                radial-gradient(at 50% 0%, rgba(124, 58, 237, 0.005) 0, transparent 50%);
+        }
+
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -10px rgba(124, 58, 237, 0.15), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
+        }
+
+        .btn-premium {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-premium:active {
+            transform: translateY(0);
+        }
+
+        .input-premium {
+            transition: all 0.2s ease;
+        }
+
+        .input-premium:focus {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="p-6 max-w-6xl mx-auto text-slate-800">
+
+    <!-- HEADER -->
+    <div class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
+            <p class="text-slate-500 mt-1">Manage your daily work, sales, and commissions.</p>
+        </div>
+        <div
+            class="text-sm text-slate-500 font-medium bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-100 flex items-center">
+            <i class="fas fa-calendar-alt mr-2 text-violet-500"></i> <span id="currentDateDisplay"></span>
+        </div>
+        <div>
+            <a href="analysis.html?type=clothix"
+                class="btn-premium inline-block bg-violet-600 text-white px-6 py-2.5 rounded-2xl font-semibold shadow-md hover:bg-violet-700 transition shadow-violet-600/20">Analysis</a>
+        </div>
+    </div>
+
+    <!-- DASHBOARD STATS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <!-- Total Work -->
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 card-hover relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10">
+                <i class="fas fa-briefcase text-6xl text-violet-600"></i>
+            </div>
+            <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Total Work Entries</div>
+            <div class="text-4xl font-extrabold text-slate-900" id="dash-total-work">0</div>
+            <div class="w-full bg-violet-50 h-1.5 mt-5 rounded-full">
+                <div class="bg-violet-500 h-1.5 rounded-full w-2/3"></div>
+            </div>
+        </div>
+
+        <!-- Total Commission -->
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 card-hover relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10">
+                <i class="fas fa-chart-line text-6xl text-emerald-600"></i>
+            </div>
+            <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Total Commission</div>
+            <div class="text-4xl font-extrabold text-emerald-600">₹<span id="dash-total-comm">0</span></div>
+            <div class="w-full bg-emerald-50 h-1.5 mt-5 rounded-full">
+                <div class="bg-emerald-500 h-1.5 rounded-full w-full"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTERS AND ADD BUTTON -->
+    <div class="mb-8 flex flex-col lg:flex-row justify-between items-center gap-4">
+        <div class="flex flex-wrap gap-3 w-full lg:w-auto">
+            <input type="text" id="filterSearch" onkeyup="render()" placeholder="Search work..."
+                class="input-premium px-4 py-2.5 bg-white border border-slate-200 rounded-2xl outline-none text-slate-600 text-sm shadow-sm w-full sm:w-auto">
+            <select id="filterAgent" onchange="render()"
+                class="input-premium px-4 py-2.5 bg-white border border-slate-200 rounded-2xl outline-none text-slate-600 text-sm shadow-sm w-full sm:w-auto">
+                <option value="all">All Agents</option>
+            </select>
+            <select id="filterStatus" onchange="render()"
+                class="input-premium px-4 py-2.5 bg-white border border-slate-200 rounded-2xl outline-none text-slate-600 text-sm shadow-sm w-full sm:w-auto">
+                <option value="all">All Status</option>
+                <option value="Placed">Placed</option>
+                <option value="Paid">Paid</option>
+                <option value="Canceled">Canceled</option>
+            </select>
+            <input type="month" id="filterMonth" onchange="render()"
+                class="input-premium px-4 py-2.5 bg-white border border-slate-200 rounded-2xl outline-none text-slate-600 text-sm shadow-sm w-full sm:w-auto">
+            <button onclick="resetFilters()"
+                class="btn-premium bg-white border border-slate-200 text-slate-400 hover:text-violet-600 hover:border-violet-200 p-2.5 rounded-2xl transition-all shadow-sm"
+                title="Reset Filters">
+                <i class="fas fa-undo-alt"></i>
+            </button>
+        </div>
+        <div class="flex flex-wrap gap-3 w-full lg:w-auto justify-end">
+            <button onclick="downloadCSVTemplate()"
+                class="btn-premium bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center"
+                title="Download CSV Template">
+                <i class="fas fa-file-download"></i>
+            </button>
+            <button onclick="document.getElementById('csvFileInput').click()"
+                class="btn-premium bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-semibold p-3 rounded-2xl border border-indigo-100 shadow-sm flex items-center"
+                title="Upload CSV">
+                <i class="fas fa-file-upload"></i>
+            </button>
+            <input type="file" id="csvFileInput" class="hidden" accept=".csv" onchange="handleCSVUpload(event)">
+
+            <button onclick="openAgentModal()"
+                class="btn-premium bg-purple-50 hover:bg-purple-100 text-purple-600 font-semibold p-3 rounded-2xl border border-purple-100 shadow-sm flex items-center"
+                title="Manage Agents">
+                <i class="fas fa-users-cog"></i>
+            </button>
+            <button onclick="exportPDF()"
+                class="btn-premium bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-semibold p-3 rounded-2xl border border-emerald-100 shadow-sm flex items-center"
+                title="Export PDF">
+                <i class="fas fa-file-pdf"></i>
+            </button>
+            <button onclick="toggleForm()"
+                class="btn-premium bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2.5 px-6 rounded-2xl shadow-md transition-all flex items-center shadow-violet-600/20">
+                <i class="fas fa-plus mr-2"></i> Add New Work
+            </button>
+        </div>
+    </div>
+
+    <!-- INPUT FORM -->
+    <div id="formContainer" class="hidden bg-white p-8 rounded-2xl shadow-sm border border-slate-100 mb-8">
+        <div class="flex items-center mb-6">
+            <div class="w-10 h-10 rounded-full bg-violet-50 flex items-center justify-center text-violet-600 mr-3">
+                <i class="fas fa-plus"></i>
+            </div>
+            <h2 class="text-xl font-bold text-slate-800">Add New Work</h2>
+        </div>
+        <form id="workForm" class="flex flex-col lg:flex-row gap-4 items-end">
+            <div class="w-full lg:w-[15%]">
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-wider">Date</label>
+                <input type="date" id="inputDate"
+                    class="input-premium w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none text-slate-700"
+                    required>
+            </div>
+            <div class="w-full lg:w-[15%]">
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-wider">Agent</label>
+                <select id="inputAgent"
+                    class="input-premium w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none text-slate-700">
+                    <!-- Populated by JS -->
+                </select>
+            </div>
+            <div class="w-full lg:w-[35%]">
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-wider">Work Name /
+                    Description</label>
+                <input type="text" id="inputName" placeholder="e.g. Client Meeting, Project Alpha"
+                    class="input-premium w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none text-slate-700"
+                    required>
+            </div>
+            <div class="w-full lg:w-[15%]">
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-wider">Sales Count</label>
+                <input type="number" id="inputSales" min="0" value="0"
+                    class="input-premium w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none text-slate-700"
+                    required>
+            </div>
+            <div class="w-full lg:w-[20%]">
+                <button type="submit"
+                    class="btn-premium w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold py-3 px-6 rounded-2xl shadow-md shadow-violet-600/20">
+                    <i class="fas fa-plus mr-2"></i> Add Work
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- WORK LIST TABLE -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr
+                        class="bg-slate-50/50 border-b border-slate-200 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                        <th class="py-4 px-6">Date</th>
+                        <th class="py-4 px-6">Work Name</th>
+                        <th class="py-4 px-6">Agent</th>
+                        <th class="py-4 px-6">Status</th>
+                        <th class="py-4 px-6 text-center">Sale Count</th>
+                        <th class="py-4 px-6">Commission (₹5/sale)</th>
+                        <th class="py-4 px-6 text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="workTableBody" class="text-slate-600 divide-y divide-slate-100">
+                    <!-- Rows will be injected here by JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty State Message -->
+        <div id="emptyState" class="p-12 text-center text-slate-400 hidden">
+            <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-clipboard-list text-3xl text-slate-300"></i>
+            </div>
+            <p class="text-lg font-medium text-slate-600">No work entries yet</p>
+            <p class="text-sm">Add your first work entry above to get started.</p>
+        </div>
+    </div>
+
+    <!-- AGENT MANAGEMENT MODAL -->
+    <div id="agentModal"
+        class="fixed inset-0 bg-slate-900/50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 transform transition-all scale-100">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-slate-800">Manage Agents</h3>
+                <button onclick="closeAgentModal()" class="text-slate-400 hover:text-slate-600 transition-colors"><i
+                        class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="space-y-3 mb-6 max-h-[60vh] overflow-y-auto pr-2" id="agentList">
+                <!-- Agent items injected here -->
+            </div>
+            <div class="flex gap-2 pt-4 border-t border-slate-100">
+                <input type="text" id="newAgentName" placeholder="New Agent Name"
+                    class="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-sm">
+                <button onclick="addNewAgent()"
+                    class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl shadow-md transition-colors"><i
+                        class="fas fa-plus"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AGENT DETAILS MODAL -->
+    <div id="agentDetailsModal"
+        class="fixed inset-0 bg-slate-900/50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 transform transition-all scale-100 max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-slate-800" id="agentDetailsTitle">Agent Details</h3>
+                <button onclick="closeAgentDetailsModal()"
+                    class="text-slate-400 hover:text-slate-600 transition-colors"><i
+                        class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="overflow-y-auto flex-1">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr
+                            class="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-wider sticky top-0">
+                            <th class="p-3">Date</th>
+                            <th class="p-3">Work Name</th>
+                            <th class="p-3 text-center">Sales</th>
+                        </tr>
+                    </thead>
+                    <tbody id="agentDetailsTableBody" class="text-slate-600 divide-y divide-slate-100">
+                        <!-- Rows injected here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4 pt-4 border-t border-slate-100 text-right font-bold text-slate-800">
+                Total Sales: <span id="agentDetailsTotal">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT WORK MODAL -->
+    <div id="editWorkModal"
+        class="fixed inset-0 bg-slate-900/50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 transform transition-all scale-100">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-violet-50 flex items-center justify-center text-violet-600 mr-3">
+                        <i class="fas fa-pen"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800">Edit Work Entry</h3>
+                </div>
+                <button onclick="closeEditWorkModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="editWorkForm" onsubmit="saveEditedWork(event)" class="space-y-4">
+                <input type="hidden" id="editWorkId">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-wider">Date</label>
+                    <input type="date" id="editDate"
+                        class="input-premium w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none text-slate-700 font-medium"
+                        required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-wider">Agent</label>
+                    <select id="editAgent"
+                        class="input-premium w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none text-slate-700 font-medium">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-wider">Work Name / Description</label>
+                    <input type="text" id="editName" placeholder="Work description"
+                        class="input-premium w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none text-slate-700 font-medium"
+                        required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-wider">Sales Count</label>
+                        <input type="number" id="editSales" min="0"
+                            class="input-premium w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none text-slate-700 font-medium"
+                            required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-wider">Status</label>
+                        <select id="editStatus"
+                            class="input-premium w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none text-slate-700 font-medium">
+                            <option value="Placed">Placed</option>
+                            <option value="Paid">Paid</option>
+                            <option value="Canceled">Canceled</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-4 border-t border-slate-100 justify-end">
+                    <button type="button" onclick="closeEditWorkModal()"
+                        class="btn-premium bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-3 px-6 rounded-2xl transition-all">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="btn-premium bg-violet-600 hover:bg-violet-700 text-white font-semibold py-3 px-6 rounded-2xl shadow-md shadow-violet-600/20 transition-all">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const FIXED_SALARY = 0;
+        const COMMISSION_RATE = 5;
+        const FIREBASE_URL = "https://camp-02-default-rtdb.firebaseio.com/clothix/works.json";
+        const AGENTS_FIREBASE_URL = "https://camp-02-default-rtdb.firebaseio.com/clothix/agents.json";
+        const AGENT_COLORS = ['blue', 'purple', 'orange', 'pink', 'emerald', 'cyan', 'rose', 'indigo', 'teal'];
+
+        // Display current date in header
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('en-US', options);
+
+        // --- STATE MANAGEMENT ---
+        // Load from local storage or initialize empty array
+        let works = [];
+        let agents = [];
+
+        // --- DOM ELEMENTS ---
+        const form = document.getElementById('workForm');
+        const tableBody = document.getElementById('workTableBody');
+        const emptyState = document.getElementById('emptyState');
+        const formContainer = document.getElementById('formContainer');
+
+        // Dashboard Elements
+        const dashTotalWork = document.getElementById('dash-total-work');
+        const dashTotalComm = document.getElementById('dash-total-comm');
+
+        // Set default date to today
+        document.getElementById('inputDate').valueAsDate = new Date();
+
+        // --- FUNCTIONS ---
+
+        async function loadAgents() {
+            try {
+                const response = await fetch(AGENTS_FIREBASE_URL);
+                const data = await response.json();
+                // Default agents if none exist
+                agents = data || [];
+                updateDropdowns();
+            } catch (error) {
+                console.error("Error loading agents:", error);
+                agents = [];
+                updateDropdowns();
+            }
+        }
+
+        async function saveAgents() {
+            try {
+                await fetch(AGENTS_FIREBASE_URL, {
+                    method: 'PUT',
+                    body: JSON.stringify(agents)
+                });
+                updateDropdowns();
+            } catch (error) {
+                console.error("Error saving agents:", error);
+            }
+        }
+
+        function updateDropdowns() {
+            const filterSelect = document.getElementById('filterAgent');
+            const inputSelect = document.getElementById('inputAgent');
+            const currentFilter = filterSelect.value;
+
+            // Update Filter
+            let filterHtml = '<option value="all">All Agents</option>';
+            agents.forEach(agent => {
+                filterHtml += `<option value="${agent}">${agent}</option>`;
+            });
+            filterSelect.innerHTML = filterHtml;
+            filterSelect.value = currentFilter; // Restore selection if valid
+
+            // Update Input
+            let inputHtml = '';
+            agents.forEach(agent => {
+                inputHtml += `<option value="${agent}">${agent}</option>`;
+            });
+            inputSelect.innerHTML = inputHtml;
+
+            render(); // Re-render table to update row dropdowns
+        }
+
+        // --- AGENT MODAL FUNCTIONS ---
+        function openAgentModal() {
+            document.getElementById('agentModal').classList.remove('hidden');
+            renderAgentList();
+        }
+
+        function closeAgentModal() {
+            document.getElementById('agentModal').classList.add('hidden');
+        }
+
+        function renderAgentList() {
+            const list = document.getElementById('agentList');
+            list.innerHTML = agents.map((agent, index) => `
+                <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <span class="font-medium text-slate-700">${agent}</span>
+                    <div class="flex gap-2">
+                        <button onclick="editAgent(${index})" class="text-violet-500 hover:bg-violet-100 p-2 rounded-lg transition-colors"><i class="fas fa-pen"></i></button>
+                        <button onclick="deleteAgent(${index})" class="text-red-500 hover:bg-red-100 p-2 rounded-lg transition-colors"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addNewAgent() {
+            const input = document.getElementById('newAgentName');
+            const name = input.value.trim();
+            if (name && !agents.includes(name)) {
+                agents.push(name);
+                input.value = '';
+                saveAgents();
+                renderAgentList();
+            } else if (agents.includes(name)) {
+                alert('Agent already exists!');
+            }
+        }
+
+        function editAgent(index) {
+            const oldName = agents[index];
+            const newName = prompt("Edit agent name:", oldName);
+
+            if (newName && newName.trim() !== "" && newName !== oldName) {
+                // Update agent list
+                agents[index] = newName.trim();
+                saveAgents();
+
+                // Update existing works
+                let worksUpdated = false;
+                works.forEach(work => {
+                    if (work.agent === oldName) {
+                        work.agent = newName.trim();
+                        worksUpdated = true;
+                    }
+                });
+
+                if (worksUpdated) saveData();
+                renderAgentList();
+            }
+        }
+
+        function deleteAgent(index) {
+            if (confirm(`Delete agent "${agents[index]}"?`)) {
+                agents.splice(index, 1);
+                saveAgents();
+                renderAgentList();
+            }
+        }
+
+        function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Get current filters
+            const filterAgent = document.getElementById('filterAgent').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+            const filterMonth = document.getElementById('filterMonth').value;
+            const searchQuery = document.getElementById('filterSearch').value.toLowerCase();
+
+            // Filter data (same logic as render)
+            const filteredWorks = works.filter(work => {
+                const agent = work.agent || 'Agent #1';
+                const status = work.status || 'Placed';
+                const monthMatch = filterMonth ? work.date.startsWith(filterMonth) : true;
+                const nameMatch = (work.name || '').toLowerCase().includes(searchQuery);
+                return (filterAgent === 'all' || agent === filterAgent) &&
+                    (filterStatus === 'all' || status === filterStatus) &&
+                    monthMatch && nameMatch;
+            });
+
+            // Sort by date (newest first)
+            const sortedWorks = [...filteredWorks].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // Prepare data for PDF
+            const tableData = sortedWorks.map(work => {
+                return [
+                    work.date,
+                    work.name,
+                    work.agent || 'Hiba',
+                    work.status || 'Placed',
+                    work.sales,
+                    `Rs. ${work.sales * COMMISSION_RATE}`
+                ];
+            });
+
+            doc.text("Clothix Work Payment Dashboard", 14, 15);
+            doc.autoTable({
+                head: [['Date', 'Work Name', 'Agent', 'Status', 'Sales', 'Commission']],
+                body: tableData,
+                startY: 20,
+                theme: 'grid',
+                headStyles: { fillColor: [124, 58, 237] } // Violet color
+            });
+            doc.save('clothix_work_payments.pdf');
+        }
+
+        function toggleForm() {
+            formContainer.classList.toggle('hidden');
+        }
+
+        async function saveData() {
+            render();
+            try {
+                await fetch(FIREBASE_URL, {
+                    method: 'PUT',
+                    body: JSON.stringify(works)
+                });
+            } catch (error) {
+                console.error("Error saving to Firebase:", error);
+            }
+        }
+
+        async function loadData() {
+            try {
+                const response = await fetch(FIREBASE_URL);
+                const data = await response.json();
+                works = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+                render();
+            } catch (error) {
+                console.error("Error loading from Firebase:", error);
+            }
+        }
+
+        function addWork(e) {
+            e.preventDefault();
+
+            const dateInput = document.getElementById('inputDate').value;
+            const nameInput = document.getElementById('inputName').value;
+            const agentInput = document.getElementById('inputAgent').value;
+            const salesInput = parseInt(document.getElementById('inputSales').value) || 0;
+
+            const newWork = {
+                id: Date.now(), // Unique ID
+                date: dateInput,
+                name: nameInput,
+                fixed: 0,
+                sales: salesInput,
+                agent: agentInput,
+                status: 'Placed'
+            };
+
+            works.push(newWork);
+            document.getElementById('inputName').value = ''; // Clear name input
+            document.getElementById('inputSales').value = '0'; // Reset sales count input
+            document.getElementById('inputName').focus(); // Keep focus on name input
+            saveData();
+        }
+
+        function updateSales(id, change) {
+            const workIndex = works.findIndex(w => w.id === id);
+            if (workIndex > -1) {
+                // Prevent negative sales
+                if (works[workIndex].sales + change >= 0) {
+                    works[workIndex].sales += change;
+                    saveData();
+                }
+            }
+        }
+
+        function updateField(id, field, value) {
+            const workIndex = works.findIndex(w => w.id === id);
+            if (workIndex > -1) {
+                works[workIndex][field] = value;
+                saveData();
+            }
+        }
+
+        function deleteWork(id) {
+            if (confirm('Are you sure you want to delete this entry?')) {
+                works = works.filter(w => w.id !== id);
+                saveData();
+            }
+        }
+
+        function openEditWorkModal(id) {
+            const work = works.find(w => w.id === id);
+            if (!work) return;
+
+            document.getElementById('editWorkId').value = work.id;
+            document.getElementById('editDate').value = work.date;
+            
+            // Populate agent select dropdown
+            const editAgentSelect = document.getElementById('editAgent');
+            editAgentSelect.innerHTML = agents.map(a => 
+                `<option value="${a}">${a}</option>`
+            ).join('');
+            editAgentSelect.value = work.agent || '';
+            
+            document.getElementById('editName').value = work.name;
+            document.getElementById('editSales').value = work.sales;
+            document.getElementById('editStatus').value = work.status || 'Placed';
+
+            document.getElementById('editWorkModal').classList.remove('hidden');
+        }
+
+        function closeEditWorkModal() {
+            document.getElementById('editWorkModal').classList.add('hidden');
+        }
+
+        async function saveEditedWork(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('editWorkId').value);
+            const date = document.getElementById('editDate').value;
+            const agent = document.getElementById('editAgent').value;
+            const name = document.getElementById('editName').value;
+            const sales = parseInt(document.getElementById('editSales').value) || 0;
+            const status = document.getElementById('editStatus').value;
+
+            const workIndex = works.findIndex(w => w.id === id);
+            if (workIndex > -1) {
+                works[workIndex].date = date;
+                works[workIndex].agent = agent;
+                works[workIndex].name = name;
+                works[workIndex].sales = sales;
+                works[workIndex].status = status;
+                
+                await saveData();
+                closeEditWorkModal();
+            }
+        }
+
+        function showAgentDetails(agentName) {
+            const filterAgent = document.getElementById('filterAgent').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+            const filterMonth = document.getElementById('filterMonth').value;
+
+            const relevantWorks = works.filter(work => {
+                const wAgent = work.agent || 'Hiba';
+                const status = work.status || 'Placed';
+                const monthMatch = filterMonth ? work.date.startsWith(filterMonth) : true;
+                const agentFilterMatch = (filterAgent === 'all' || wAgent === filterAgent);
+
+                return agentFilterMatch &&
+                    (wAgent === agentName) &&
+                    (filterStatus === 'all' || status === filterStatus) &&
+                    monthMatch &&
+                    (parseInt(work.sales) || 0) !== 0;
+            });
+
+            // Sort by date
+            relevantWorks.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            document.getElementById('agentDetailsTitle').innerText = `${agentName} - Sales Breakdown`;
+            const tbody = document.getElementById('agentDetailsTableBody');
+
+            let totalSales = 0;
+
+            if (relevantWorks.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-slate-400">No sales records found for this selection.</td></tr>`;
+            } else {
+                tbody.innerHTML = relevantWorks.map(work => {
+                    const sales = parseInt(work.sales) || 0;
+                    totalSales += sales;
+                    return `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-3 text-sm whitespace-nowrap">${work.date}</td>
+                            <td class="p-3 text-sm font-medium text-slate-700">${work.name}</td>
+                            <td class="p-3 text-sm text-center font-bold text-slate-800">${sales}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('agentDetailsTotal').innerText = totalSales;
+            document.getElementById('agentDetailsModal').classList.remove('hidden');
+        }
+
+        function closeAgentDetailsModal() {
+            document.getElementById('agentDetailsModal').classList.add('hidden');
+        }
+
+        function resetFilters() {
+            document.getElementById('filterAgent').value = 'all';
+            document.getElementById('filterStatus').value = 'all';
+            document.getElementById('filterMonth').value = '';
+            document.getElementById('filterSearch').value = '';
+            render();
+        }
+
+        function render() {
+            // Filter Logic
+            const filterAgent = document.getElementById('filterAgent').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+            const filterMonth = document.getElementById('filterMonth').value;
+            const searchQuery = document.getElementById('filterSearch').value.toLowerCase();
+
+            const filteredWorks = works.filter(work => {
+                const agent = work.agent || 'Agent #1';
+                const status = work.status || 'Placed';
+                const monthMatch = filterMonth ? work.date.startsWith(filterMonth) : true;
+                const nameMatch = (work.name || '').toLowerCase().includes(searchQuery);
+                return (filterAgent === 'all' || agent === filterAgent) &&
+                    (filterStatus === 'all' || status === filterStatus) &&
+                    monthMatch && nameMatch;
+            });
+
+            // 1. Calculate Totals (Based on Filtered Data)
+            const totalWorkCount = filteredWorks.length;
+            const totalSales = filteredWorks.reduce((sum, w) => sum + (parseInt(w.sales) || 0), 0);
+            const totalComm = totalSales * COMMISSION_RATE;
+            const totalPaidComm = filteredWorks.filter(w => w.status === 'Paid').reduce((sum, w) => sum + ((parseInt(w.sales) || 0) * COMMISSION_RATE), 0);
+
+            // 2. Update Dashboard
+            dashTotalWork.innerText = totalWorkCount;
+            dashTotalComm.innerText = `${totalComm} / ${totalPaidComm}`;
+
+            // 3. Render Table
+            // 3. Render Table (Work List)
+            tableBody.innerHTML = '';
+
+            if (filteredWorks.length === 0) {
+                emptyState.classList.remove('hidden');
+                const msg = works.length === 0 ? "No work entries yet" : "No matching entries found";
+                emptyState.querySelector('p').innerText = msg;
+            } else {
+                emptyState.classList.add('hidden');
+
+                // Sort by date (newest first)
+                const sortedWorks = [...filteredWorks].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                sortedWorks.forEach(work => {
+                    const commission = work.sales * COMMISSION_RATE;
+                    const currentAgent = work.agent || 'Hiba';
+                    const currentStatus = work.status || 'Placed';
+
+                    // Generate Agent Options dynamically
+                    const agentOptions = agents.map(a =>
+                        `<option value="${a}" ${currentAgent === a ? 'selected' : ''}>${a}</option>`
+                    ).join('');
+
+                    // Styling based on Agent and Status
+                    // Dynamic Color Assignment
+                    const agentIndex = agents.indexOf(currentAgent);
+                    const colorName = AGENT_COLORS[(agentIndex >= 0 ? agentIndex : 0) % AGENT_COLORS.length];
+
+                    const agentBorderClass = `border-l-${colorName}-500`;
+                    const agentSelectClass = `bg-${colorName}-50 border-${colorName}-200 text-${colorName}-700`;
+
+                    let rowBgClass = 'bg-white hover:bg-slate-50/50';
+                    let statusSelectClass = 'bg-amber-50 border-amber-200 text-amber-700'; // Default Placed
+
+                    if (currentStatus === 'Paid') {
+                        statusSelectClass = 'bg-teal-50 border-teal-200 text-teal-700';
+                    } else if (currentStatus === 'Canceled') {
+                        statusSelectClass = 'bg-rose-50 border-rose-200 text-rose-700';
+                    } else if (currentStatus === 'Placed') {
+                        statusSelectClass = 'bg-amber-50 border-amber-200 text-amber-700';
+                    }
+
+                    const row = document.createElement('tr');
+                    row.className = `transition duration-150 border-l-4 ${agentBorderClass} ${rowBgClass} border-b border-slate-100`;
+
+                    row.innerHTML = `
+                        <td class="py-4 px-6 whitespace-nowrap text-sm text-slate-500">${work.date}</td>
+                        <td class="py-4 px-6 font-medium text-slate-800 text-sm">${work.name}</td>
+                        <td class="py-4 px-6">
+                            <select onchange="updateField(${work.id}, 'agent', this.value)" class="${agentSelectClass} border text-xs rounded-xl block w-full p-2 outline-none font-medium transition-all">
+                                ${agentOptions}
+                            </select>
+                        </td>
+                        <td class="py-4 px-6">
+                            <select onchange="updateField(${work.id}, 'status', this.value)" class="${statusSelectClass} border text-xs rounded-xl block w-full p-2 outline-none font-medium transition-all">
+                                <option value="Placed" ${currentStatus === 'Placed' ? 'selected' : ''}>Placed</option>
+                                <option value="Paid" ${currentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
+                                <option value="Canceled" ${currentStatus === 'Canceled' ? 'selected' : ''}>Canceled</option>
+                            </select>
+                        </td>
+                        <td class="py-4 px-6">
+                            <div class="flex items-center justify-center space-x-3">
+                                <button onclick="updateSales(${work.id}, -1)" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition shadow-sm">
+                                    <i class="fas fa-minus text-xs"></i>
+                                </button>
+                                <span class="font-bold w-8 text-center text-slate-800 text-sm">${work.sales}</span>
+                                <button onclick="updateSales(${work.id}, 1)" class="w-8 h-8 rounded-full bg-violet-50 hover:bg-violet-100 text-violet-600 flex items-center justify-center transition shadow-sm border border-violet-100">
+                                    <i class="fas fa-plus text-xs"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td class="py-4 px-6 text-emerald-600 font-semibold text-sm">₹${commission}</td>
+                        <td class="py-4 px-6 text-center">
+                            <div class="flex items-center justify-center space-x-1">
+                                <button onclick="openEditWorkModal(${work.id})" class="text-slate-400 hover:text-violet-600 transition p-2 rounded-full hover:bg-violet-50" title="Edit Entry">
+                                    <i class="fas fa-pen text-sm"></i>
+                                </button>
+                                <button onclick="deleteWork(${work.id})" class="text-slate-400 hover:text-red-500 transition p-2 rounded-full hover:bg-red-50" title="Delete Entry">
+                                    <i class="fas fa-trash text-sm"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+        }
+
+        // --- CSV IMPORT / EXPORT FUNCTIONS ---
+        function downloadCSVTemplate() {
+            const csvContent = "Date,Agent,Work Name,Sales,Status\n2026-07-04,Hiba,T Shirt Printing,10,Placed\n2026-07-04,Adil,Embroidery Work,5,Paid";
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "clothix_work_template.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function handleCSVUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const text = e.target.result;
+                const rows = text.split(/\r?\n/);
+                if (rows.length <= 1) {
+                    alert("The CSV file is empty or only contains headers.");
+                    return;
+                }
+
+                // Check headers
+                const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
+                const dateIdx = headers.indexOf('date');
+                const agentIdx = headers.indexOf('agent');
+                const nameIdx = headers.indexOf('work name');
+                const salesIdx = headers.indexOf('sales');
+                const statusIdx = headers.indexOf('status');
+
+                if (dateIdx === -1 || agentIdx === -1 || nameIdx === -1 || salesIdx === -1) {
+                    alert("Invalid CSV format. Headers must include: Date, Agent, Work Name, Sales (and optional Status).");
+                    return;
+                }
+
+                let importedCount = 0;
+                let errorCount = 0;
+
+                // Process rows
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (!row.trim()) continue;
+
+                    const cols = parseCSVRow(row);
+                    if (cols.length < 4) {
+                        errorCount++;
+                        continue;
+                    }
+
+                    const dateVal = cols[dateIdx] ? cols[dateIdx].trim() : '';
+                    const agentVal = cols[agentIdx] ? cols[agentIdx].trim() : '';
+                    const nameVal = cols[nameIdx] ? cols[nameIdx].trim() : '';
+                    const salesVal = parseInt(cols[salesIdx]) || 0;
+                    const statusVal = (statusIdx !== -1 && cols[statusIdx]) ? cols[statusIdx].trim() : 'Placed';
+
+                    // Basic validation
+                    if (!dateVal || !agentVal || !nameVal) {
+                        errorCount++;
+                        continue;
+                    }
+
+                    // Add to works array
+                    const newWork = {
+                        id: Date.now() + i, // Unique ID offset by index to prevent collision
+                        date: dateVal,
+                        name: nameVal,
+                        fixed: 0,
+                        sales: salesVal,
+                        agent: agentVal,
+                        status: statusVal
+                    };
+
+                    works.push(newWork);
+                    importedCount++;
+                }
+
+                if (importedCount > 0) {
+                    saveData();
+                    alert(`Successfully imported ${importedCount} work entries!${errorCount > 0 ? ` (${errorCount} rows skipped due to invalid data)` : ''}`);
+                } else {
+                    alert("No valid entries were found in the CSV file.");
+                }
+
+                // Reset file input
+                event.target.value = '';
+            };
+
+            reader.readAsText(file);
+        }
+
+        // Helper to parse a CSV row, handling quotes
+        function parseCSVRow(text) {
+            let p = '', r = [];
+            let q = false;
+            for (let i = 0; i < text.length; i++) {
+                let c = text.charAt(i);
+                if (c === '"') {
+                    q = !q;
+                } else if (c === ',' && !q) {
+                    r.push(p);
+                    p = '';
+                } else {
+                    p += c;
+                }
+            }
+            r.push(p);
+            return r;
+        }
+
+        // --- INITIALIZATION ---
+        form.addEventListener('submit', addWork);
+        loadData();
+        loadAgents();
+
+    </script>
+</body>
+
+</html>
