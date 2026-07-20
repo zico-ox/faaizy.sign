@@ -101,6 +101,50 @@
         </div>
     </div>
 
+    <!-- Group-wise Sales Summary -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-4 text-slate-800 flex items-center gap-2">
+            <i class="fas fa-layer-group text-blue-600"></i> Group Sales Summary
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Level 1 Group Card -->
+            <div class="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 p-6 rounded-2xl shadow-sm card-hover relative overflow-hidden">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <span class="inline-block px-3 py-1 bg-indigo-600 text-white text-xs font-bold rounded-full uppercase tracking-wider shadow-sm mb-2">Level 1 Group</span>
+                        <div class="text-slate-500 text-xs font-bold uppercase">Total Sales Count</div>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg">
+                        L1
+                    </div>
+                </div>
+                <div class="text-4xl font-extrabold text-indigo-900 mb-3" id="group-1-sales">0</div>
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-600 pt-3 border-t border-indigo-100/60">
+                    <span>Work Entries: <strong class="text-indigo-800" id="group-1-work">0</strong></span>
+                    <span>Total P&amp;L: <strong class="text-indigo-800" id="group-1-pl">₹0</strong></span>
+                </div>
+            </div>
+
+            <!-- Level 2 Group Card -->
+            <div class="bg-gradient-to-br from-purple-50 to-fuchsia-50 border border-purple-100 p-6 rounded-2xl shadow-sm card-hover relative overflow-hidden">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <span class="inline-block px-3 py-1 bg-purple-600 text-white text-xs font-bold rounded-full uppercase tracking-wider shadow-sm mb-2">Level 2 Group</span>
+                        <div class="text-slate-500 text-xs font-bold uppercase">Total Sales Count</div>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-lg">
+                        L2
+                    </div>
+                </div>
+                <div class="text-4xl font-extrabold text-purple-900 mb-3" id="group-2-sales">0</div>
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-600 pt-3 border-t border-purple-100/60">
+                    <span>Work Entries: <strong class="text-purple-800" id="group-2-work">0</strong></span>
+                    <span>Total P&amp;L: <strong class="text-purple-800" id="group-2-pl">₹0</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Agent-wise Analysis Section -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8">
         <h2 class="text-xl font-semibold p-6 pb-0 text-slate-800">Agent-wise Analysis</h2>
@@ -262,12 +306,19 @@
             try {
                 const res = await fetch(AGENTS_URL);
                 const data = await res.json();
-                // Firebase returns an array for agents, or null if empty.
-                // Provide a default list if no agents are found.
-                return data || ['Hiba', 'T Shirt', 'Adil', 'Arathy'];
+                const raw = data || ['Hiba', 'T Shirt', 'Adil', 'Arathy'];
+                return raw.map(item => {
+                    if (typeof item === 'string') return { name: item, group: 'Level 1' };
+                    return { name: item.name || 'Unknown', group: item.group || 'Level 1' };
+                });
             } catch (error) {
                 console.error("Error fetching agents:", error);
-                return ['Hiba', 'T Shirt', 'Adil', 'Arathy']; // Fallback default agents
+                return [
+                    { name: 'Hiba', group: 'Level 1' },
+                    { name: 'T Shirt', group: 'Level 1' },
+                    { name: 'Adil', group: 'Level 1' },
+                    { name: 'Arathy', group: 'Level 1' }
+                ];
             }
         }
 
@@ -278,14 +329,12 @@
         }
 
         async function renderAnalysis() {
-            await fetchWorks(); // This call will now populate the global 'works' array
+            await fetchWorks();
             const agents = await fetchAgents();
 
-            // Get filter values from the new inputs
             const currentFilterMonth = document.getElementById('analysisFilterMonth').value;
             const currentFilterDate = document.getElementById('analysisFilterDate').value;
 
-            // Apply filters to the works array for all calculations on this page
             const filteredWorks = works.filter(work => {
                 const monthMatch = currentFilterMonth ? work.date.startsWith(currentFilterMonth) : true;
                 const dateMatch = currentFilterDate ? work.date === currentFilterDate : true;
@@ -297,9 +346,9 @@
             const totalSalesCount = filteredWorks.reduce((sum, w) => sum + (parseInt(w.sales) || 0), 0);
             const currentFixedSalaryRate = isClothix ? 0 : FIXED_SALARY;
             const totalFixedSalary = totalWorkEntries * currentFixedSalaryRate;
-            const totalCommissionEarned = totalSalesCount * COMMISSION_RATE; // Total commission if all sales were paid
-            const netProfitLoss = totalCommissionEarned - totalFixedSalary; // P&L based on filtered sales
-            const totalPaidCommission = filteredWorks.filter(w => w.status === 'Paid').reduce((sum, w) => sum + ((parseInt(w.sales) || 0) * COMMISSION_RATE), 0); // Commission from filtered paid works
+            const totalCommissionEarned = totalSalesCount * COMMISSION_RATE;
+            const netProfitLoss = totalCommissionEarned - totalFixedSalary;
+            const totalPaidCommission = filteredWorks.filter(w => w.status === 'Paid').reduce((sum, w) => sum + ((parseInt(w.sales) || 0) * COMMISSION_RATE), 0);
 
             // --- Update P&L Analysis Section ---
             document.getElementById('pl-fixed-salary').textContent = `₹${totalFixedSalary.toLocaleString('en-IN')}`;
@@ -308,75 +357,190 @@
 
             // --- Update Overall Stats Section ---
             document.getElementById('total-sales').textContent = totalSalesCount.toLocaleString('en-IN');
-            document.getElementById('total-profit').textContent = `₹${totalPaidCommission.toLocaleString('en-IN')}`; // Displaying total paid commission
             const pendingAmountToPay = totalCommissionEarned - totalPaidCommission;
             document.getElementById('total-profit').textContent = `₹${totalPaidCommission.toLocaleString('en-IN')} / ₹${pendingAmountToPay.toLocaleString('en-IN')}`;
             document.getElementById('total-entries').textContent = totalWorkEntries.toLocaleString('en-IN');
 
-            // --- Populate Agent-wise Analysis Table ---
+            // --- Group Data Preparation ---
+            // Create a lookup for agent groups
+            const agentGroupMap = {};
+            agents.forEach(a => {
+                agentGroupMap[a.name] = a.group || 'Level 1';
+            });
+
+            // Also check for any works assigned to agents not in the agents list
+            filteredWorks.forEach(w => {
+                const agentName = w.agent || 'Unknown';
+                if (!agentGroupMap[agentName]) {
+                    agentGroupMap[agentName] = 'Level 1';
+                }
+            });
+
+            // Categorize agents into groups
+            const groups = {
+                'Level 1': [],
+                'Level 2': []
+            };
+
+            // Group agent list
+            agents.forEach(a => {
+                const grp = a.group === 'Level 2' ? 'Level 2' : 'Level 1';
+                if (!groups[grp].includes(a.name)) {
+                    groups[grp].push(a.name);
+                }
+            });
+
+            // Add any missing work agents
+            Object.keys(agentGroupMap).forEach(name => {
+                const grp = agentGroupMap[name];
+                if (!groups[grp].includes(name)) {
+                    groups[grp].push(name);
+                }
+            });
+
+            // Summary metrics per group
+            const groupMetrics = {
+                'Level 1': { work: 0, sales: 0, pl: 0 },
+                'Level 2': { work: 0, sales: 0, pl: 0 }
+            };
+
             const agentAnalysisTableBody = document.getElementById('agent-analysis-table');
-            agentAnalysisTableBody.innerHTML = ''; // Clear previous data
+            agentAnalysisTableBody.innerHTML = '';
 
             if (agents.length === 0 || filteredWorks.length === 0) {
                 document.getElementById('agentAnalysisEmptyState').classList.remove('hidden');
             } else {
                 document.getElementById('agentAnalysisEmptyState').classList.add('hidden');
-                agents.forEach(agent => {
-                    const agentWorks = filteredWorks.filter(w => (w.agent || 'Unknown') === agent); // Handle potential undefined agent
-                    const agentTotalWork = agentWorks.length;
-                    const agentTotalSales = agentWorks.reduce((sum, w) => sum + (parseInt(w.sales) || 0), 0);
-                    const agentFixedCost = agentTotalWork * (isClothix ? 0 : FIXED_SALARY);
-                    const agentCommissionEarned = agentTotalSales * COMMISSION_RATE;
-                    const agentPL = agentCommissionEarned - agentFixedCost;
 
-                    // Calculate work status counts for the agent
-                    let workStatusSummaryHTML = '';
-                    if (isClothix) {
-                        const placedWorks = agentWorks.filter(w => w.status === 'Placed').length;
-                        const paidWorks = agentWorks.filter(w => w.status === 'Paid').length;
-                        const canceledWorks = agentWorks.filter(w => w.status === 'Canceled').length;
+                ['Level 1', 'Level 2'].forEach(groupName => {
+                    const groupAgents = groups[groupName];
+                    const isLevel2 = groupName === 'Level 2';
 
-                        workStatusSummaryHTML = ` 
-                            <span onclick="showAgentDetails('${agent}', '${currentFilterMonth}', '${currentFilterDate}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors">
-                                Pl: ${placedWorks}
-                            </span>
-                            <span onclick="showAgentDetails('${agent}', '${currentFilterMonth}', '${currentFilterDate}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800 hover:bg-teal-200 transition-colors">
-                                Pd: ${paidWorks}
-                            </span> 
-                            <span onclick="showAgentDetails('${agent}', '${currentFilterMonth}', '${currentFilterDate}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800 hover:bg-rose-200 transition-colors">
-                                C: ${canceledWorks}
-                            </span>
+                    let groupWorkTotal = 0;
+                    let groupSalesTotal = 0;
+                    let groupPLTotal = 0;
+
+                    let groupRowsHTML = '';
+
+                    groupAgents.forEach(agentName => {
+                        const agentWorks = filteredWorks.filter(w => (w.agent || 'Unknown') === agentName);
+                        const agentTotalWork = agentWorks.length;
+                        const agentTotalSales = agentWorks.reduce((sum, w) => sum + (parseInt(w.sales) || 0), 0);
+                        const agentFixedCost = agentTotalWork * (isClothix ? 0 : FIXED_SALARY);
+                        const agentCommissionEarned = agentTotalSales * COMMISSION_RATE;
+                        const agentPL = agentCommissionEarned - agentFixedCost;
+
+                        groupWorkTotal += agentTotalWork;
+                        groupSalesTotal += agentTotalSales;
+                        groupPLTotal += agentPL;
+
+                        let workStatusSummaryHTML = '';
+                        if (isClothix) {
+                            const placedWorks = agentWorks.filter(w => w.status === 'Placed').length;
+                            const paidWorks = agentWorks.filter(w => w.status === 'Paid').length;
+                            const canceledWorks = agentWorks.filter(w => w.status === 'Canceled').length;
+
+                            workStatusSummaryHTML = ` 
+                                <span onclick="showAgentDetails('${agentName}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors">
+                                    Pl: ${placedWorks}
+                                </span>
+                                <span onclick="showAgentDetails('${agentName}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800 hover:bg-teal-200 transition-colors">
+                                    Pd: ${paidWorks}
+                                </span> 
+                                <span onclick="showAgentDetails('${agentName}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800 hover:bg-rose-200 transition-colors">
+                                    C: ${canceledWorks}
+                                </span>
+                            `;
+                        } else {
+                            const acceptedWorks = agentWorks.filter(w => w.status === 'Accept').length;
+                            const pendingWorks = agentWorks.filter(w => w.status === 'Pending').length;
+                            const paidWorks = agentWorks.filter(w => w.status === 'Paid').length;
+
+                            workStatusSummaryHTML = ` 
+                                <span onclick="showAgentDetails('${agentName}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors">
+                                    A: ${acceptedWorks}
+                                </span>
+                                <span onclick="showAgentDetails('${agentName}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors">
+                                    P: ${pendingWorks}
+                                </span>
+                                <span onclick="showAgentDetails('${agentName}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors">
+                                    Pd: ${paidWorks}
+                                </span> 
+                            `;
+                        }
+
+                        const groupBadge = isLevel2 
+                            ? `<span class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-bold border border-purple-200">Level 2</span>`
+                            : `<span class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold border border-indigo-200">Level 1</span>`;
+
+                        groupRowsHTML += `
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="p-5 font-medium text-slate-800 flex items-center">${agentName} ${groupBadge}</td>
+                                <td class="p-5 text-center">${agentTotalWork}</td>
+                                <td class="p-5 text-center font-semibold text-slate-900">${agentTotalSales}</td>
+                                <td class="p-5 text-right font-bold ${agentPL >= 0 ? 'text-emerald-600' : 'text-red-600'}">₹${agentPL.toLocaleString('en-IN')}</td>
+                                <td class="p-5 text-center flex flex-wrap gap-1 justify-center">${workStatusSummaryHTML}</td>
+                            </tr>
                         `;
-                    } else {
-                        const acceptedWorks = agentWorks.filter(w => w.status === 'Accept').length;
-                        const pendingWorks = agentWorks.filter(w => w.status === 'Pending').length;
-                        const paidWorks = agentWorks.filter(w => w.status === 'Paid').length;
+                    });
 
-                        workStatusSummaryHTML = ` 
-                            <span onclick="showAgentDetails('${agent}', '${currentFilterMonth}', '${currentFilterDate}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors">
-                                A: ${acceptedWorks}
-                            </span>
-                            <span onclick="showAgentDetails('${agent}', '${currentFilterMonth}', '${currentFilterDate}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors">
-                                P: ${pendingWorks}
-                            </span>
-                            <span onclick="showAgentDetails('${agent}', '${currentFilterMonth}', '${currentFilterDate}')" class="cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors">
-                                Pd: ${paidWorks}
-                            </span> 
-                        `;
-                    }
+                    groupMetrics[groupName] = {
+                        work: groupWorkTotal,
+                        sales: groupSalesTotal,
+                        pl: groupPLTotal
+                    };
 
-                    const row = document.createElement('tr');
-                    row.className = 'hover:bg-slate-50 transition-colors';
-                    row.innerHTML = `
-                        <td class="p-5 font-medium text-slate-800">${agent}</td>
-                        <td class="p-5 text-center">${agentTotalWork}</td>
-                        <td class="p-5 text-center">${agentTotalSales}</td>
-                        <td class="p-5 text-right font-bold ${agentPL >= 0 ? 'text-emerald-600' : 'text-red-600'}">₹${agentPL.toLocaleString('en-IN')}</td>
-                        <td class="p-5 text-center flex flex-wrap gap-1 justify-center">${workStatusSummaryHTML}</td>
+                    // Header Row for Group
+                    const headerClass = isLevel2 ? 'bg-purple-50/90 text-purple-900 border-purple-200' : 'bg-indigo-50/90 text-indigo-900 border-indigo-200';
+                    const badgeClass = isLevel2 ? 'bg-purple-600 text-white' : 'bg-indigo-600 text-white';
+                    const iconClass = isLevel2 ? 'text-purple-600' : 'text-indigo-600';
+
+                    const groupHeaderHTML = `
+                        <tr class="${headerClass} border-y font-bold">
+                            <td colspan="5" class="px-5 py-3 text-xs tracking-wider uppercase">
+                                <div class="flex items-center justify-between">
+                                    <span class="flex items-center gap-2">
+                                        <i class="fas fa-users ${iconClass}"></i> ${groupName} Agents (${groupAgents.length})
+                                    </span>
+                                    <span class="${badgeClass} text-xs px-3 py-1 rounded-full font-bold shadow-sm">
+                                        Group Sales Count: ${groupSalesTotal}
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
                     `;
-                    agentAnalysisTableBody.appendChild(row);
+
+                    // Subtotal Row for Group
+                    const subtotalBgClass = isLevel2 ? 'bg-purple-50/40 text-purple-950 border-purple-200' : 'bg-indigo-50/40 text-indigo-950 border-indigo-200';
+                    const groupSubtotalHTML = groupAgents.length > 0 ? `
+                        <tr class="${subtotalBgClass} font-bold border-b-2">
+                            <td class="p-4 pl-6 text-sm">${groupName} Total</td>
+                            <td class="p-4 text-center text-sm">${groupWorkTotal}</td>
+                            <td class="p-4 text-center text-sm font-extrabold ${isLevel2 ? 'text-purple-700' : 'text-indigo-700'}">${groupSalesTotal}</td>
+                            <td class="p-4 text-right text-sm">₹${groupPLTotal.toLocaleString('en-IN')}</td>
+                            <td class="p-4 text-center text-xs text-slate-500">${groupSalesTotal} sales across ${groupWorkTotal} entries</td>
+                        </tr>
+                    ` : `
+                        <tr class="text-slate-400 border-b">
+                            <td colspan="5" class="p-4 text-center text-sm italic">No agents assigned to ${groupName}</td>
+                        </tr>
+                    `;
+
+                    agentAnalysisTableBody.innerHTML += groupHeaderHTML + (groupRowsHTML || `<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">No activity for ${groupName}</td></tr>`) + groupSubtotalHTML;
                 });
             }
+
+            // --- Update Group-wise Summary Cards ---
+            const g1 = groupMetrics['Level 1'] || { work: 0, sales: 0, pl: 0 };
+            const g2 = groupMetrics['Level 2'] || { work: 0, sales: 0, pl: 0 };
+
+            document.getElementById('group-1-sales').textContent = g1.sales.toLocaleString('en-IN');
+            document.getElementById('group-1-work').textContent = g1.work.toLocaleString('en-IN');
+            document.getElementById('group-1-pl').textContent = `₹${g1.pl.toLocaleString('en-IN')}`;
+
+            document.getElementById('group-2-sales').textContent = g2.sales.toLocaleString('en-IN');
+            document.getElementById('group-2-work').textContent = g2.work.toLocaleString('en-IN');
+            document.getElementById('group-2-pl').textContent = `₹${g2.pl.toLocaleString('en-IN')}`;
         }
 
         // Run on page load
