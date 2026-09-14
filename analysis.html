@@ -95,6 +95,13 @@
         <div class="flex gap-3 w-full md:w-auto">
             <input type="month" id="analysisFilterMonth" onchange="renderAnalysis()" class="px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 text-sm shadow-sm w-full md:w-auto">
             <input type="date" id="analysisFilterDate" onchange="renderAnalysis()" class="px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 text-sm shadow-sm w-full md:w-auto">
+            <select id="analysisFilterBasket" onchange="renderAnalysis()" class="hidden px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none text-slate-700 text-sm shadow-sm font-medium">
+                <option value="all">📦 All Baskets Combined</option>
+            </select>
+            <label id="hideInactiveLabel" class="flex items-center gap-2 px-3.5 py-2 bg-white border border-slate-200 rounded-xl shadow-sm cursor-pointer select-none text-xs font-semibold text-slate-600 hover:border-slate-300 transition">
+                <input type="checkbox" id="hideInactiveCheckbox" checked onchange="renderAnalysis()" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer">
+                <span>Hide 0-Sales Agents</span>
+            </label>
             <button id="resetFiltersBtn" onclick="resetAnalysisFilters()" class="bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-300 p-2 rounded-xl transition-all shadow-sm" title="Reset Filters">
                 <i class="fas fa-undo-alt"></i>
             </button>
@@ -106,7 +113,7 @@
         <h2 class="text-xl font-semibold mb-4 text-slate-800 flex items-center gap-2">
             <i class="fas fa-layer-group text-blue-600"></i> Group Sales Summary
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Level 1 Group Card -->
             <div class="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 p-6 rounded-2xl shadow-sm card-hover relative overflow-hidden">
                 <div class="flex justify-between items-start mb-4">
@@ -140,6 +147,42 @@
                 <div class="flex items-center justify-between text-xs font-semibold text-slate-600 pt-3 border-t border-purple-100/60">
                     <span>Work Entries: <strong class="text-purple-800" id="group-2-work">0</strong></span>
                     <span>Total P&amp;L: <strong class="text-purple-800" id="group-2-pl">₹0</strong></span>
+                </div>
+            </div>
+
+            <!-- Level 3 Group Card -->
+            <div class="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 p-6 rounded-2xl shadow-sm card-hover relative overflow-hidden">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <span class="inline-block px-3 py-1 bg-emerald-600 text-white text-xs font-bold rounded-full uppercase tracking-wider shadow-sm mb-2">Level 3 Group</span>
+                        <div class="text-slate-500 text-xs font-bold uppercase">Total Sales Count</div>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg">
+                        L3
+                    </div>
+                </div>
+                <div class="text-4xl font-extrabold text-emerald-900 mb-3" id="group-3-sales">0</div>
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-600 pt-3 border-t border-emerald-100/60">
+                    <span>Work Entries: <strong class="text-emerald-800" id="group-3-work">0</strong></span>
+                    <span>Total P&amp;L: <strong class="text-emerald-800" id="group-3-pl">₹0</strong></span>
+                </div>
+            </div>
+
+            <!-- Level 4 Group Card -->
+            <div class="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 p-6 rounded-2xl shadow-sm card-hover relative overflow-hidden">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <span class="inline-block px-3 py-1 bg-amber-600 text-white text-xs font-bold rounded-full uppercase tracking-wider shadow-sm mb-2">Level 4 Group</span>
+                        <div class="text-slate-500 text-xs font-bold uppercase">Total Sales Count</div>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-lg">
+                        L4
+                    </div>
+                </div>
+                <div class="text-4xl font-extrabold text-amber-900 mb-3" id="group-4-sales">0</div>
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-600 pt-3 border-t border-amber-100/60">
+                    <span>Work Entries: <strong class="text-amber-800" id="group-4-work">0</strong></span>
+                    <span>Total P&amp;L: <strong class="text-amber-800" id="group-4-pl">₹0</strong></span>
                 </div>
             </div>
         </div>
@@ -178,6 +221,7 @@
 
         let WORKS_URL = "https://camp-02-default-rtdb.firebaseio.com/works.json";
         let AGENTS_URL = "https://camp-02-default-rtdb.firebaseio.com/agents.json";
+        let BASKETS_URL = "https://camp-02-default-rtdb.firebaseio.com/clothix/baskets.json";
 
         if (isClothix) {
             WORKS_URL = "https://camp-02-default-rtdb.firebaseio.com/clothix/works.json";
@@ -187,8 +231,60 @@
         const FIXED_SALARY = 30;
         const COMMISSION_RATE = 5;
         const AGENT_COLORS = ['blue', 'purple', 'orange', 'pink', 'emerald', 'cyan', 'rose', 'indigo', 'teal'];
+        let baskets = [];
 
-        function initPage() {
+        async function fetchBaskets() {
+            if (!isClothix) return [];
+            try {
+                const res = await fetch(BASKETS_URL);
+                const data = await res.json();
+                if (data && Array.isArray(data)) {
+                    baskets = data;
+                } else if (data && typeof data === 'object') {
+                    baskets = Object.values(data);
+                } else {
+                    baskets = [];
+                }
+                return baskets;
+            } catch (err) {
+                console.error("Error fetching baskets:", err);
+                baskets = [];
+                return [];
+            }
+        }
+
+        function populateBasketFilter() {
+            const basketSelect = document.getElementById('analysisFilterBasket');
+            if (!basketSelect) return;
+
+            let optionsHtml = '';
+            const activeBasket = baskets.find(b => b.status === 'active');
+
+            if (baskets.length === 0) {
+                optionsHtml = `
+                    <option value="basket_1">Basket #1 (🟢 Active)</option>
+                    <option value="all">📦 All Baskets Combined</option>
+                `;
+            } else {
+                baskets.forEach(b => {
+                    const statusIcon = b.status === 'active' ? '🟢' : '📦';
+                    const statusText = b.status === 'active' ? 'Active' : 'Archived';
+                    optionsHtml += `<option value="${b.id}">${statusIcon} ${b.name} (${statusText})</option>`;
+                });
+                optionsHtml += `<option value="all">🌐 All Baskets Combined</option>`;
+            }
+
+            basketSelect.innerHTML = optionsHtml;
+            if (activeBasket) {
+                basketSelect.value = activeBasket.id;
+            } else if (baskets.length > 0) {
+                basketSelect.value = baskets[0].id;
+            } else {
+                basketSelect.value = 'all';
+            }
+        }
+
+        async function initPage() {
             if (isClothix) {
                 // Update Title
                 document.title = "Clothix Sales & Profit Analysis";
@@ -243,21 +339,45 @@
                     resetBtn.classList.remove('hover:text-blue-600', 'hover:border-blue-300');
                     resetBtn.classList.add('hover:text-violet-600', 'hover:border-violet-300');
                 }
+
+                // Setup Basket Filter
+                const basketSelect = document.getElementById('analysisFilterBasket');
+                if (basketSelect) {
+                    basketSelect.classList.remove('hidden');
+                    await fetchBaskets();
+                    populateBasketFilter();
+                }
+
+                // Update checkbox color for Clothix
+                const hideInactiveCheckbox = document.getElementById('hideInactiveCheckbox');
+                if (hideInactiveCheckbox) {
+                    hideInactiveCheckbox.classList.remove('text-blue-600', 'focus:ring-blue-500');
+                    hideInactiveCheckbox.classList.add('text-violet-600', 'focus:ring-violet-500');
+                }
             }
         }
 
         // --- AGENT DETAILS MODAL ---
         function showAgentDetails(agentName) {
-            // Assuming 'works' array is globally available or passed
+            const currentFilterBasket = isClothix && document.getElementById('analysisFilterBasket') ? document.getElementById('analysisFilterBasket').value : 'all';
+            const firstBasketId = baskets[0]?.id || 'basket_1';
+
             const relevantWorks = works.filter(work => {
                 const wAgent = work.agent || 'Unknown';
-                return (wAgent === agentName) && (parseInt(work.sales) || 0) !== 0; 
+                let basketMatch = true;
+                if (isClothix && currentFilterBasket && currentFilterBasket !== 'all') {
+                    const wBasket = work.basketId || firstBasketId;
+                    basketMatch = (wBasket === currentFilterBasket);
+                }
+                return (wAgent === agentName) && (parseInt(work.sales) || 0) !== 0 && basketMatch; 
             });
             
             // Sort by date (newest first)
             relevantWorks.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-            document.getElementById('agentDetailsTitle').innerText = `${agentName} - Sales Breakdown`;
+            const basketObj = baskets.find(b => b.id === currentFilterBasket);
+            const basketSuffix = (isClothix && basketObj && currentFilterBasket !== 'all') ? ` (${basketObj.name})` : '';
+            document.getElementById('agentDetailsTitle').innerText = `${agentName} - Sales Breakdown${basketSuffix}`;
             const tbody = document.getElementById('agentDetailsTableBody');
             
             let totalSales = 0;
@@ -307,9 +427,10 @@
                 const res = await fetch(AGENTS_URL);
                 const data = await res.json();
                 const raw = data || ['Hiba', 'T Shirt', 'Adil', 'Arathy'];
+                const firstBasketId = baskets[0]?.id || 'basket_1';
                 return raw.map(item => {
-                    if (typeof item === 'string') return { name: item, group: 'Level 1' };
-                    return { name: item.name || 'Unknown', group: item.group || 'Level 1' };
+                    if (typeof item === 'string') return { name: item, group: 'Level 1', basketId: firstBasketId };
+                    return { name: item.name || 'Unknown', group: item.group || 'Level 1', basketId: item.basketId || firstBasketId };
                 });
             } catch (error) {
                 console.error("Error fetching agents:", error);
@@ -325,6 +446,15 @@
         function resetAnalysisFilters() {
             document.getElementById('analysisFilterMonth').value = '';
             document.getElementById('analysisFilterDate').value = '';
+            const hideInactiveCheckbox = document.getElementById('hideInactiveCheckbox');
+            if (hideInactiveCheckbox) hideInactiveCheckbox.checked = true;
+            if (isClothix) {
+                const active = baskets.find(b => b.status === 'active');
+                const basketSelect = document.getElementById('analysisFilterBasket');
+                if (basketSelect) {
+                    basketSelect.value = active ? active.id : (baskets[0]?.id || 'all');
+                }
+            }
             renderAnalysis();
         }
 
@@ -334,11 +464,18 @@
 
             const currentFilterMonth = document.getElementById('analysisFilterMonth').value;
             const currentFilterDate = document.getElementById('analysisFilterDate').value;
+            const currentFilterBasket = isClothix && document.getElementById('analysisFilterBasket') ? document.getElementById('analysisFilterBasket').value : 'all';
+            const firstBasketId = baskets[0]?.id || 'basket_1';
 
             const filteredWorks = works.filter(work => {
                 const monthMatch = currentFilterMonth ? work.date.startsWith(currentFilterMonth) : true;
                 const dateMatch = currentFilterDate ? work.date === currentFilterDate : true;
-                return monthMatch && dateMatch;
+                let basketMatch = true;
+                if (isClothix && currentFilterBasket && currentFilterBasket !== 'all') {
+                    const wBasket = work.basketId || firstBasketId;
+                    basketMatch = (wBasket === currentFilterBasket);
+                }
+                return monthMatch && dateMatch && basketMatch;
             });
 
             // --- Calculate Global Stats ---
@@ -362,9 +499,14 @@
             document.getElementById('total-entries').textContent = totalWorkEntries.toLocaleString('en-IN');
 
             // --- Group Data Preparation ---
+            // Scope agents to the current basket if isClothix and a specific basket is selected
+            const scopedAgents = (isClothix && currentFilterBasket && currentFilterBasket !== 'all')
+                ? agents.filter(a => (a.basketId || firstBasketId) === currentFilterBasket)
+                : agents;
+
             // Create a lookup for agent groups
             const agentGroupMap = {};
-            agents.forEach(a => {
+            scopedAgents.forEach(a => {
                 agentGroupMap[a.name] = a.group || 'Level 1';
             });
 
@@ -377,14 +519,17 @@
             });
 
             // Categorize agents into groups
+            const VALID_GROUPS = ['Level 1', 'Level 2', 'Level 3', 'Level 4'];
             const groups = {
                 'Level 1': [],
-                'Level 2': []
+                'Level 2': [],
+                'Level 3': [],
+                'Level 4': []
             };
 
             // Group agent list
-            agents.forEach(a => {
-                const grp = a.group === 'Level 2' ? 'Level 2' : 'Level 1';
+            scopedAgents.forEach(a => {
+                const grp = VALID_GROUPS.includes(a.group) ? a.group : 'Level 1';
                 if (!groups[grp].includes(a.name)) {
                     groups[grp].push(a.name);
                 }
@@ -392,7 +537,7 @@
 
             // Add any missing work agents
             Object.keys(agentGroupMap).forEach(name => {
-                const grp = agentGroupMap[name];
+                const grp = VALID_GROUPS.includes(agentGroupMap[name]) ? agentGroupMap[name] : 'Level 1';
                 if (!groups[grp].includes(name)) {
                     groups[grp].push(name);
                 }
@@ -401,26 +546,79 @@
             // Summary metrics per group
             const groupMetrics = {
                 'Level 1': { work: 0, sales: 0, pl: 0 },
-                'Level 2': { work: 0, sales: 0, pl: 0 }
+                'Level 2': { work: 0, sales: 0, pl: 0 },
+                'Level 3': { work: 0, sales: 0, pl: 0 },
+                'Level 4': { work: 0, sales: 0, pl: 0 }
             };
+
+            const GROUP_CONFIG = {
+                'Level 1': {
+                    badge: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+                    headerBg: 'bg-indigo-50/90 text-indigo-900 border-indigo-200',
+                    badgeHeader: 'bg-indigo-600 text-white',
+                    iconColor: 'text-indigo-600',
+                    subtotalBg: 'bg-indigo-50/40 text-indigo-950 border-indigo-200',
+                    subtotalSalesColor: 'text-indigo-700'
+                },
+                'Level 2': {
+                    badge: 'bg-purple-100 text-purple-700 border-purple-200',
+                    headerBg: 'bg-purple-50/90 text-purple-900 border-purple-200',
+                    badgeHeader: 'bg-purple-600 text-white',
+                    iconColor: 'text-purple-600',
+                    subtotalBg: 'bg-purple-50/40 text-purple-950 border-purple-200',
+                    subtotalSalesColor: 'text-purple-700'
+                },
+                'Level 3': {
+                    badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                    headerBg: 'bg-emerald-50/90 text-emerald-900 border-emerald-200',
+                    badgeHeader: 'bg-emerald-600 text-white',
+                    iconColor: 'text-emerald-600',
+                    subtotalBg: 'bg-emerald-50/40 text-emerald-950 border-emerald-200',
+                    subtotalSalesColor: 'text-emerald-700'
+                },
+                'Level 4': {
+                    badge: 'bg-amber-100 text-amber-700 border-amber-200',
+                    headerBg: 'bg-amber-50/90 text-amber-900 border-amber-200',
+                    badgeHeader: 'bg-amber-600 text-white',
+                    iconColor: 'text-amber-600',
+                    subtotalBg: 'bg-amber-50/40 text-amber-950 border-amber-200',
+                    subtotalSalesColor: 'text-amber-700'
+                }
+            };
+
+            const hideInactiveCheckbox = document.getElementById('hideInactiveCheckbox');
+            const hideInactive = hideInactiveCheckbox ? hideInactiveCheckbox.checked : true;
 
             const agentAnalysisTableBody = document.getElementById('agent-analysis-table');
             agentAnalysisTableBody.innerHTML = '';
 
+            let totalDisplayedAgents = 0;
+
             if (agents.length === 0 || filteredWorks.length === 0) {
                 document.getElementById('agentAnalysisEmptyState').classList.remove('hidden');
             } else {
-                document.getElementById('agentAnalysisEmptyState').classList.add('hidden');
-
-                ['Level 1', 'Level 2'].forEach(groupName => {
+                VALID_GROUPS.forEach(groupName => {
                     const groupAgents = groups[groupName];
-                    const isLevel2 = groupName === 'Level 2';
+                    const conf = GROUP_CONFIG[groupName] || GROUP_CONFIG['Level 1'];
 
-                    let groupWorkTotal = 0;
-                    let groupSalesTotal = 0;
-                    let groupPLTotal = 0;
+                    // Calculate group metrics from filtered works for this group
+                    const groupWorks = filteredWorks.filter(w => {
+                        const grp = agentGroupMap[w.agent || 'Unknown'] || 'Level 1';
+                        return grp === groupName;
+                    });
+                    const groupWorkTotal = groupWorks.length;
+                    const groupSalesTotal = groupWorks.reduce((sum, w) => sum + (parseInt(w.sales) || 0), 0);
+                    const groupFixedCost = groupWorkTotal * (isClothix ? 0 : FIXED_SALARY);
+                    const groupPLTotal = (groupSalesTotal * COMMISSION_RATE) - groupFixedCost;
+
+                    groupMetrics[groupName] = {
+                        work: groupWorkTotal,
+                        sales: groupSalesTotal,
+                        pl: groupPLTotal
+                    };
 
                     let groupRowsHTML = '';
+                    let displayedInGroup = 0;
 
                     groupAgents.forEach(agentName => {
                         const agentWorks = filteredWorks.filter(w => (w.agent || 'Unknown') === agentName);
@@ -430,9 +628,13 @@
                         const agentCommissionEarned = agentTotalSales * COMMISSION_RATE;
                         const agentPL = agentCommissionEarned - agentFixedCost;
 
-                        groupWorkTotal += agentTotalWork;
-                        groupSalesTotal += agentTotalSales;
-                        groupPLTotal += agentPL;
+                        // If hideInactive is enabled, hide agents who have 0 work entries or 0 sales
+                        if (hideInactive && (agentTotalWork === 0 || agentTotalSales === 0)) {
+                            return;
+                        }
+
+                        displayedInGroup++;
+                        totalDisplayedAgents++;
 
                         let workStatusSummaryHTML = '';
                         if (isClothix) {
@@ -469,9 +671,7 @@
                             `;
                         }
 
-                        const groupBadge = isLevel2 
-                            ? `<span class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-bold border border-purple-200">Level 2</span>`
-                            : `<span class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold border border-indigo-200">Level 1</span>`;
+                        const groupBadge = `<span class="ml-2 text-[10px] px-2 py-0.5 rounded-full ${conf.badge} font-bold border">${groupName}</span>`;
 
                         groupRowsHTML += `
                             <tr class="hover:bg-slate-50 transition-colors">
@@ -484,25 +684,20 @@
                         `;
                     });
 
-                    groupMetrics[groupName] = {
-                        work: groupWorkTotal,
-                        sales: groupSalesTotal,
-                        pl: groupPLTotal
-                    };
+                    // If hiding inactive agents and this group has 0 active agents, skip rendering this group
+                    if (hideInactive && displayedInGroup === 0) {
+                        return;
+                    }
 
                     // Header Row for Group
-                    const headerClass = isLevel2 ? 'bg-purple-50/90 text-purple-900 border-purple-200' : 'bg-indigo-50/90 text-indigo-900 border-indigo-200';
-                    const badgeClass = isLevel2 ? 'bg-purple-600 text-white' : 'bg-indigo-600 text-white';
-                    const iconClass = isLevel2 ? 'text-purple-600' : 'text-indigo-600';
-
                     const groupHeaderHTML = `
-                        <tr class="${headerClass} border-y font-bold">
+                        <tr class="${conf.headerBg} border-y font-bold">
                             <td colspan="5" class="px-5 py-3 text-xs tracking-wider uppercase">
                                 <div class="flex items-center justify-between">
                                     <span class="flex items-center gap-2">
-                                        <i class="fas fa-users ${iconClass}"></i> ${groupName} Agents (${groupAgents.length})
+                                        <i class="fas fa-users ${conf.iconColor}"></i> ${groupName} Agents (${displayedInGroup})
                                     </span>
-                                    <span class="${badgeClass} text-xs px-3 py-1 rounded-full font-bold shadow-sm">
+                                    <span class="${conf.badgeHeader} text-xs px-3 py-1 rounded-full font-bold shadow-sm">
                                         Group Sales Count: ${groupSalesTotal}
                                     </span>
                                 </div>
@@ -511,42 +706,47 @@
                     `;
 
                     // Subtotal Row for Group
-                    const subtotalBgClass = isLevel2 ? 'bg-purple-50/40 text-purple-950 border-purple-200' : 'bg-indigo-50/40 text-indigo-950 border-indigo-200';
-                    const groupSubtotalHTML = groupAgents.length > 0 ? `
-                        <tr class="${subtotalBgClass} font-bold border-b-2">
+                    const groupSubtotalHTML = displayedInGroup > 0 ? `
+                        <tr class="${conf.subtotalBg} font-bold border-b-2">
                             <td class="p-4 pl-6 text-sm">${groupName} Total</td>
                             <td class="p-4 text-center text-sm">${groupWorkTotal}</td>
-                            <td class="p-4 text-center text-sm font-extrabold ${isLevel2 ? 'text-purple-700' : 'text-indigo-700'}">${groupSalesTotal}</td>
+                            <td class="p-4 text-center text-sm font-extrabold ${conf.subtotalSalesColor}">${groupSalesTotal}</td>
                             <td class="p-4 text-right text-sm">₹${groupPLTotal.toLocaleString('en-IN')}</td>
                             <td class="p-4 text-center text-xs text-slate-500">${groupSalesTotal} sales across ${groupWorkTotal} entries</td>
                         </tr>
                     ` : `
                         <tr class="text-slate-400 border-b">
-                            <td colspan="5" class="p-4 text-center text-sm italic">No agents assigned to ${groupName}</td>
+                            <td colspan="5" class="p-4 text-center text-sm italic">No active agents in ${groupName}</td>
                         </tr>
                     `;
 
                     agentAnalysisTableBody.innerHTML += groupHeaderHTML + (groupRowsHTML || `<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">No activity for ${groupName}</td></tr>`) + groupSubtotalHTML;
                 });
+
+                if (totalDisplayedAgents === 0) {
+                    document.getElementById('agentAnalysisEmptyState').classList.remove('hidden');
+                } else {
+                    document.getElementById('agentAnalysisEmptyState').classList.add('hidden');
+                }
             }
 
             // --- Update Group-wise Summary Cards ---
-            const g1 = groupMetrics['Level 1'] || { work: 0, sales: 0, pl: 0 };
-            const g2 = groupMetrics['Level 2'] || { work: 0, sales: 0, pl: 0 };
-
-            document.getElementById('group-1-sales').textContent = g1.sales.toLocaleString('en-IN');
-            document.getElementById('group-1-work').textContent = g1.work.toLocaleString('en-IN');
-            document.getElementById('group-1-pl').textContent = `₹${g1.pl.toLocaleString('en-IN')}`;
-
-            document.getElementById('group-2-sales').textContent = g2.sales.toLocaleString('en-IN');
-            document.getElementById('group-2-work').textContent = g2.work.toLocaleString('en-IN');
-            document.getElementById('group-2-pl').textContent = `₹${g2.pl.toLocaleString('en-IN')}`;
+            [1, 2, 3, 4].forEach(num => {
+                const gName = `Level ${num}`;
+                const gm = groupMetrics[gName] || { work: 0, sales: 0, pl: 0 };
+                const salesEl = document.getElementById(`group-${num}-sales`);
+                const workEl = document.getElementById(`group-${num}-work`);
+                const plEl = document.getElementById(`group-${num}-pl`);
+                if (salesEl) salesEl.textContent = gm.sales.toLocaleString('en-IN');
+                if (workEl) workEl.textContent = gm.work.toLocaleString('en-IN');
+                if (plEl) plEl.textContent = `₹${gm.pl.toLocaleString('en-IN')}`;
+            });
         }
 
         // Run on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            initPage();
-            renderAnalysis();
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initPage();
+            await renderAnalysis();
         });
     </script>
 

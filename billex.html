@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>billex - Thermal Printer Bluetooth Test</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-color: #0d1117;
+      --card-bg: #161b22;
+      --card-border: #30363d;
+      --primary: #2ea043;
+      --primary-hover: #3fb950;
+      --primary-glow: rgba(46, 160, 67, 0.35);
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --danger: #f85149;
+      --warning: #d29922;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --receipt-bg: #fbfbf9;
+      --receipt-ink: #111111;
+      --receipt-border: #d3d3cd;
+      --font-ui: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'Space Mono', 'Courier New', Courier, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 12px 48px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 8px 0;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(88, 166, 255, 0.12);
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      color: var(--accent);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #ffffff 40%, #8b949e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* System Status Card */
+    .status-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .status-label {
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      font-size: 0.82rem;
+      padding: 3px 10px;
+      border-radius: 12px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-disconnected {
+      background: rgba(248, 81, 73, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(248, 81, 73, 0.3);
+    }
+    .status-disconnected .status-dot {
+      background: var(--danger);
+    }
+
+    .status-connecting {
+      background: rgba(210, 153, 34, 0.15);
+      color: var(--warning);
+      border: 1px solid rgba(210, 153, 34, 0.3);
+    }
+    .status-connecting .status-dot {
+      background: var(--warning);
+      animation: pulse 1s infinite;
+    }
+
+    .status-connected {
+      background: rgba(46, 160, 67, 0.18);
+      color: var(--primary-hover);
+      border: 1px solid rgba(46, 160, 67, 0.4);
+    }
+    .status-connected .status-dot {
+      background: var(--primary-hover);
+      box-shadow: 0 0 8px var(--primary-hover);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .device-info {
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      background: rgba(0, 0, 0, 0.25);
+      padding: 6px 10px;
+      border-radius: 8px;
+      color: var(--accent);
+      border: 1px dashed rgba(88, 166, 255, 0.25);
+      word-break: break-all;
+      display: none;
+    }
+
+    /* Warning Banner for unsupported contexts */
+    .alert-banner {
+      background: rgba(210, 153, 34, 0.12);
+      border: 1px solid rgba(210, 153, 34, 0.4);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 0.84rem;
+      line-height: 1.4;
+      color: #ffd479;
+      display: none;
+    }
+
+    .alert-banner.error {
+      background: rgba(248, 81, 73, 0.12);
+      border-color: rgba(248, 81, 73, 0.4);
+      color: #ff9b96;
+    }
+
+    .alert-banner strong {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    /* Controls & Options */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      outline: none;
+      font-family: var(--font-ui);
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 12px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-connect {
+      background: #21262d;
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-connect:hover {
+      background: #30363d;
+      border-color: #8b949e;
+    }
+
+    .btn-connect.is-connected {
+      background: rgba(248, 81, 73, 0.12);
+      color: var(--danger);
+      border-color: rgba(248, 81, 73, 0.3);
+    }
+
+    .btn-config {
+      background: #21262d;
+      color: var(--text-muted);
+      border: 1px solid var(--card-border);
+      font-size: 0.88rem;
+    }
+
+    /* Paper Width Switcher */
+    .config-strip {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .pill-selector {
+      display: inline-flex;
+      background: #0d1117;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 2px;
+    }
+
+    .pill-btn {
+      padding: 4px 12px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .pill-btn.active {
+      background: var(--accent);
+      color: #0d1117;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Thermal Bill Paper Preview */
+    .receipt-container {
+      position: relative;
+      filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.5));
+    }
+
+    .receipt-card {
+      background: var(--receipt-bg);
+      color: var(--receipt-ink);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      line-height: 1.35;
+      padding: 24px 18px 28px;
+      border-radius: 6px 6px 0 0;
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.04);
+      position: relative;
+      overflow: hidden;
+      transition: max-width 0.3s ease;
+      margin: 0 auto;
+      max-width: 320px; /* 58mm preview simulation */
+    }
+
+    .receipt-card.width-80mm {
+      max-width: 440px; /* 80mm preview simulation */
+      font-size: 12px;
+    }
+
+    /* Jagged Paper Tear Effect */
+    .receipt-tear {
+      height: 14px;
+      background: repeating-linear-gradient(
+        -45deg,
+        var(--receipt-bg),
+        var(--receipt-bg) 6px,
+        transparent 6px,
+        transparent 12px
+      ), repeating-linear-gradient(
+        45deg,
+        var(--receipt-bg),
+        var(--receipt-bg) 6px,
+        transparent 6px,
+        transparent 12px
+      );
+      background-size: 12px 12px;
+      background-position: left top;
+      margin: 0 auto;
+      max-width: 320px;
+      transition: max-width 0.3s ease;
+    }
+
+    .receipt-card.width-80mm + .receipt-tear {
+      max-width: 440px;
+    }
+
+    .rc-center {
+      text-align: center;
+    }
+
+    .rc-bold {
+      font-weight: 700;
+    }
+
+    .rc-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .rc-divider {
+      border-top: 1px dashed #777;
+      margin: 8px 0;
+    }
+
+    .rc-double-divider {
+      border-top: 1px double #333;
+      border-bottom: 1px double #333;
+      height: 3px;
+      margin: 8px 0;
+    }
+
+    .rc-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+
+    .rc-item-name {
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .rc-item-sub {
+      display: flex;
+      justify-content: space-between;
+      color: #333;
+      padding-left: 8px;
+    }
+
+    .rc-total-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 700;
+      margin: 6px 0;
+    }
+
+    .rc-barcode {
+      margin: 12px auto 6px;
+      text-align: center;
+      letter-spacing: 3px;
+      font-size: 14px;
+      background: #000;
+      color: #fff;
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 2px;
+    }
+
+    /* Giant Print Button */
+    .print-button-container {
+      position: sticky;
+      bottom: 12px;
+      z-index: 100;
+      margin-top: 8px;
+    }
+
+    .btn-print {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary) 0%, #238636 100%);
+      color: #ffffff;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 18px 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px var(--primary-glow), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-print:hover:not(:disabled) {
+      background: linear-gradient(135deg, var(--primary-hover) 0%, #2ea043 100%);
+      box-shadow: 0 10px 28px rgba(46, 160, 67, 0.5);
+    }
+
+    .btn-print:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      filter: grayscale(0.6);
+    }
+
+    .btn-print svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    /* Diagnostic Console / Logs */
+    .console-card {
+      background: #0b0e14;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .console-header {
+      background: #161b22;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .console-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-clear-log {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .btn-clear-log:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .console-body {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      line-height: 1.45;
+      padding: 10px 12px;
+      max-height: 160px;
+      overflow-y: auto;
+      color: #c9d1d9;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .log-line {
+      display: flex;
+      gap: 8px;
+    }
+
+    .log-time {
+      color: #6e7681;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .log-msg.info { color: #58a6ff; }
+    .log-msg.success { color: #3fb950; font-weight: 700; }
+    .log-msg.warn { color: #d29922; }
+    .log-msg.error { color: #f85149; font-weight: 700; }
+
+    /* Quick Test / Feed buttons */
+    .aux-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-aux {
+      flex: 1;
+      padding: 9px 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      background: #1c2128;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .btn-aux:hover {
+      background: #272d37;
+      color: var(--text-main);
+    }
+
+    /* Modal / Info Drawer */
+    .faq-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .faq-section summary {
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      user-select: none;
+      outline: none;
+    }
+
+    .faq-content {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .faq-content ul {
+      margin-left: 18px;
+    }
+
+    .faq-content li {
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="brand-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+        Direct ESC/POS Print Tester
+      </div>
+      <h1 class="title">billex</h1>
+      <p class="subtitle">Mobile Bluetooth thermal printer test page</p>
+    </header>
+
+    <!-- Context Warning Alerts (Dynamic) -->
+    <div id="securityAlert" class="alert-banner">
+      <strong>⚠️ Secure Context Required</strong>
+      <span id="securityAlertMsg">Web Bluetooth requires an HTTPS connection or localhost. If you are opening this via HTTP (e.g. <code>http://192.168.x.x</code>), Android Chrome will block Bluetooth access.</span>
+    </div>
+
+    <div id="unsupportedAlert" class="alert-banner error">
+      <strong>❌ Web Bluetooth Not Available</strong>
+      <span id="unsupportedAlertMsg">Your current browser does not support the Web Bluetooth API. Please use <strong>Google Chrome on Android</strong>.</span>
+    </div>
+
+    <!-- Printer Connection Card -->
+    <div class="status-card">
+      <div class="status-row">
+        <span class="status-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5l11 11L12 23V1l5.5 5.5-11 11"/></svg>
+          Printer Status
+        </span>
+        <div id="statusBadge" class="status-indicator status-disconnected">
+          <span class="status-dot"></span>
+          <span id="statusText">Disconnected</span>
+        </div>
+      </div>
+
+      <div id="deviceDetails" class="device-info"></div>
+
+      <div class="controls-grid">
+        <button id="btnConnect" class="btn btn-connect">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5l11 11L12 23V1l5.5 5.5-11 11"/></svg>
+          <span id="btnConnectText">Connect Printer</span>
+        </button>
+
+        <button id="btnFeed" class="btn btn-config" title="Feed 3 blank lines to test mechanical paper feed">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          Feed Paper
+        </button>
+      </div>
+    </div>
+
+    <!-- Configuration Strip -->
+    <div class="config-strip">
+      <span>Paper Width Format:</span>
+      <div class="pill-selector">
+        <button id="pill58mm" class="pill-btn active" onclick="setPaperWidth('58mm')">58mm (32c)</button>
+        <button id="pill80mm" class="pill-btn" onclick="setPaperWidth('80mm')">80mm (48c)</button>
+      </div>
+    </div>
+
+    <!-- Live Bill Receipt Preview -->
+    <div class="receipt-container">
+      <div id="receiptPreview" class="receipt-card">
+        <div class="rc-center rc-title">METRO SUPERMARKET</div>
+        <div class="rc-center">123 Commercial Road, City Center</div>
+        <div class="rc-center">Tel: +91 98765 43210</div>
+        <div class="rc-center">GSTIN: 32AABCF1234F1Z8</div>
+
+        <div class="rc-divider"></div>
+
+        <div class="rc-row">
+          <span>RC NO: #BX-8942</span>
+          <span id="rcDateTime">14/09/2026 23:30</span>
+        </div>
+        <div class="rc-row">
+          <span>Cashier: Counter 01</span>
+          <span>POS-BLE</span>
+        </div>
+
+        <div class="rc-divider"></div>
+
+        <!-- Bill Line Items -->
+        <div class="rc-item">
+          <div class="rc-item-name">Organic Fresh Milk 1L</div>
+          <div class="rc-item-sub">
+            <span>2 x $3.50</span>
+            <span>$7.00</span>
+          </div>
+        </div>
+
+        <div class="rc-item">
+          <div class="rc-item-name">Whole Wheat Bread 400g</div>
+          <div class="rc-item-sub">
+            <span>1 x $2.20</span>
+            <span>$2.20</span>
+          </div>
+        </div>
+
+        <div class="rc-item">
+          <div class="rc-item-name">Arabica Coffee Beans 250g</div>
+          <div class="rc-item-sub">
+            <span>1 x $12.50</span>
+            <span>$12.50</span>
+          </div>
+        </div>
+
+        <div class="rc-item">
+          <div class="rc-item-name">Greek Yogurt Plain 500g</div>
+          <div class="rc-item-sub">
+            <span>2 x $4.00</span>
+            <span>$8.00</span>
+          </div>
+        </div>
+
+        <div class="rc-item">
+          <div class="rc-item-name">Belgian Dark Chocolate 100g</div>
+          <div class="rc-item-sub">
+            <span>3 x $2.80</span>
+            <span>$8.40</span>
+          </div>
+        </div>
+
+        <div class="rc-divider"></div>
+
+        <div class="rc-row">
+          <span>Total Items:</span>
+          <span>5 (9 units)</span>
+        </div>
+        <div class="rc-row">
+          <span>Sub Total:</span>
+          <span>$38.10</span>
+        </div>
+        <div class="rc-row">
+          <span>Tax (8%):</span>
+          <span>$3.05</span>
+        </div>
+
+        <div class="rc-double-divider"></div>
+
+        <div class="rc-total-row">
+          <span>GRAND TOTAL:</span>
+          <span>$41.15</span>
+        </div>
+
+        <div class="rc-double-divider"></div>
+
+        <div class="rc-row">
+          <span>Payment: CASH</span>
+          <span>$50.00</span>
+        </div>
+        <div class="rc-row">
+          <span>Change Given:</span>
+          <span>$8.85</span>
+        </div>
+
+        <div class="rc-divider"></div>
+
+        <div class="rc-center rc-bold" style="margin-top: 6px;">*** THANK YOU! VISIT AGAIN ***</div>
+        <div class="rc-center" style="font-size: 9.5px; color: #555; margin-top: 3px;">Returns accepted within 7 days with bill</div>
+        <div class="rc-center">
+          <div class="rc-barcode">||| | |||| || ||| || ||||</div>
+        </div>
+      </div>
+      <div class="receipt-tear"></div>
+    </div>
+
+    <!-- Big PRINT BILL Action Button -->
+    <div class="print-button-container">
+      <button id="btnPrintBill" class="btn btn-print">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+          <path d="M6 14h12v8H6z"/>
+        </svg>
+        <span>PRINT BILL</span>
+      </button>
+    </div>
+
+    <!-- Secondary Quick Actions -->
+    <div class="aux-actions">
+      <button id="btnSelfTest" class="btn-aux" onclick="printSelfTest()">Print 1-Line Test</button>
+      <button id="btnBeep" class="btn-aux" onclick="sendPrinterBeep()">Printer Buzzer/Beep</button>
+    </div>
+
+    <!-- Diagnostic Log Console -->
+    <div class="console-card">
+      <div class="console-header">
+        <span class="console-title">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          Bluetooth & ESC/POS Logs
+        </span>
+        <button class="btn-clear-log" onclick="clearLogs()">Clear</button>
+      </div>
+      <div id="consoleBody" class="console-body">
+        <div class="log-line">
+          <span class="log-time">00:00:00</span>
+          <span class="log-msg info">billex ready. Checking environment...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions & Compatibility FAQ -->
+    <details class="faq-section">
+      <summary>💡 Hardware & Browser Requirements</summary>
+      <div class="faq-content">
+        <p><strong>1. Required Browser:</strong> Google Chrome on Android (v56+).</p>
+        <p><strong>2. Protocol:</strong> Must be served via <code>HTTPS</code> or <code>localhost</code> (Web Bluetooth security requirement).</p>
+        <p><strong>3. Thermal Printer Type:</strong> Portable or desktop ESC/POS thermal printer equipped with <strong>Bluetooth Low Energy (BLE)</strong>.</p>
+        <p><strong>4. How to pair:</strong>
+          <ul>
+            <li>Turn on your thermal printer and verify Bluetooth is active (blue LED flashing or steady).</li>
+            <li>Enable <strong>Bluetooth</strong> and <strong>Location</strong> (required by Android for BLE scanning) on your Android phone.</li>
+            <li>Tap <strong>"Connect Printer"</strong> or <strong>"PRINT BILL"</strong>. Select your printer in the Chrome device chooser popup.</li>
+          </ul>
+        </p>
+      </div>
+    </details>
+
+  </div>
+
+  <script>
+    /**
+     * billex - Web Bluetooth ESC/POS Direct Thermal Printer Controller
+     */
+
+    // State Variables
+    let bluetoothDevice = null;
+    let gattServer = null;
+    let writeCharacteristic = null;
+    let currentPaperWidth = '58mm'; // '58mm' (32 cols) or '80mm' (48 cols)
+    let isPrinting = false;
+
+    // Common Thermal Printer BLE GATT Service UUIDs
+    const KNOWN_PRINTER_SERVICES = [
+      '000018f0-0000-1000-8000-00805f9b34fb', // Standard Printer Service
+      '49535343-fe7d-4ae5-8fa9-9fafd205e455', // ISSC Transparent UART (Microchip/Generic Chinese)
+      '0000ff00-0000-1000-8000-00805f9b34fb', // Generic POS FF00
+      '0000ae00-0000-1000-8000-00805f9b34fb', // Generic AE00
+      '0000af00-0000-1000-8000-00805f9b34fb', // Generic AF00
+      '0000e781-0000-1000-8000-00805f9b34fb', // Generic E781
+      '0000fee7-0000-1000-8000-00805f9b34fb', // Tencent/WeChat/POS Service
+      '6e400001-b5a3-f393-e0a9-e50e24dcca9e', // Nordic UART Service (NUS)
+      0x18f0,
+      0xff00,
+      0xae00,
+      0xaf00,
+      0xe781,
+      0xfee7
+    ];
+
+    // UI Elements
+    const statusBadge = document.getElementById('statusBadge');
+    const statusText = document.getElementById('statusText');
+    const deviceDetails = document.getElementById('deviceDetails');
+    const btnConnect = document.getElementById('btnConnect');
+    const btnConnectText = document.getElementById('btnConnectText');
+    const btnPrintBill = document.getElementById('btnPrintBill');
+    const btnFeed = document.getElementById('btnFeed');
+    const securityAlert = document.getElementById('securityAlert');
+    const unsupportedAlert = document.getElementById('unsupportedAlert');
+    const consoleBody = document.getElementById('consoleBody');
+    const receiptPreview = document.getElementById('receiptPreview');
+    const pill58mm = document.getElementById('pill58mm');
+    const pill80mm = document.getElementById('pill80mm');
+    const rcDateTime = document.getElementById('rcDateTime');
+
+    // Update real-time receipt date/time
+    function updateReceiptDateTime() {
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const formatted = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      if (rcDateTime) rcDateTime.textContent = formatted;
+    }
+    updateReceiptDateTime();
+
+    // Logger
+    function log(msg, type = 'info') {
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0').slice(0, 2);
+      
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      line.innerHTML = `
+        <span class="log-time">${timeStr}</span>
+        <span class="log-msg ${type}">${escapeHtml(msg)}</span>
+      `;
+      consoleBody.appendChild(line);
+      consoleBody.scrollTop = consoleBody.scrollHeight;
+    }
+
+    function clearLogs() {
+      consoleBody.innerHTML = '';
+      log('Logs cleared.', 'info');
+    }
+
+    function escapeHtml(str) {
+      if (typeof str !== 'string') str = String(str);
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Check Browser & Security Context
+    function checkEnvironment() {
+      const isSecure = window.isSecureContext;
+      const hasBluetooth = 'bluetooth' in navigator;
+
+      log(`Context: ${isSecure ? 'Secure (HTTPS/localhost)' : 'Insecure (HTTP)'}`, isSecure ? 'info' : 'warn');
+      log(`navigator.bluetooth: ${hasBluetooth ? 'Available' : 'NOT Supported'}`, hasBluetooth ? 'info' : 'error');
+
+      if (!isSecure) {
+        securityAlert.style.display = 'block';
+        log('WARNING: Chrome blocks Web Bluetooth in non-secure HTTP origins.', 'warn');
+      }
+
+      if (!hasBluetooth) {
+        unsupportedAlert.style.display = 'block';
+        btnConnect.disabled = true;
+        btnPrintBill.disabled = true;
+        btnFeed.disabled = true;
+        log('CRITICAL: Web Bluetooth API is not available on this browser/platform.', 'error');
+      }
+    }
+
+    // Paper width selector
+    function setPaperWidth(width) {
+      currentPaperWidth = width;
+      if (width === '58mm') {
+        pill58mm.classList.add('active');
+        pill80mm.classList.remove('active');
+        receiptPreview.classList.remove('width-80mm');
+        log('Paper format set to 58mm (32 characters/line)', 'info');
+      } else {
+        pill80mm.classList.add('active');
+        pill58mm.classList.remove('active');
+        receiptPreview.classList.add('width-80mm');
+        log('Paper format set to 80mm (48 characters/line)', 'info');
+      }
+    }
+
+    // Update Status UI
+    function setStatus(state, msg = '') {
+      statusBadge.className = 'status-indicator';
+      deviceDetails.style.display = 'none';
+
+      if (state === 'connected') {
+        statusBadge.classList.add('status-connected');
+        statusText.textContent = 'Connected';
+        btnConnect.classList.add('is-connected');
+        btnConnectText.textContent = 'Disconnect';
+        if (msg) {
+          deviceDetails.textContent = msg;
+          deviceDetails.style.display = 'block';
+        }
+      } else if (state === 'connecting') {
+        statusBadge.classList.add('status-connecting');
+        statusText.textContent = 'Connecting...';
+        btnConnectText.textContent = 'Cancel';
+      } else {
+        statusBadge.classList.add('status-disconnected');
+        statusText.textContent = 'Disconnected';
+        btnConnect.classList.remove('is-connected');
+        btnConnectText.textContent = 'Connect Printer';
+      }
+    }
+
+    // Connect to Bluetooth Thermal Printer
+    async function connectPrinter() {
+      if (!('bluetooth' in navigator)) {
+        log('Web Bluetooth is not supported on this browser.', 'error');
+        alert('Web Bluetooth is not supported. Please open in Google Chrome on Android.');
+        return false;
+      }
+
+      try {
+        setStatus('connecting');
+        log('Requesting Bluetooth device (User Chooser)...', 'info');
+
+        // Request device with all known printer services listed in optionalServices
+        bluetoothDevice = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: KNOWN_PRINTER_SERVICES
+        });
+
+        log(`Device selected: "${bluetoothDevice.name || 'Unnamed Device'}" (ID: ${bluetoothDevice.id.slice(0, 8)}...)`, 'info');
+
+        bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+        log('Connecting to GATT Server...', 'info');
+        gattServer = await bluetoothDevice.gatt.connect();
+        log('GATT Server connected! Discovering primary services...', 'info');
+
+        // Scan services to find writable characteristic
+        writeCharacteristic = await findWritableCharacteristic(gattServer);
+
+        if (!writeCharacteristic) {
+          throw new Error('No writable ESC/POS characteristic found on this device. Ensure this device is a BLE thermal printer.');
+        }
+
+        const charUuid = writeCharacteristic.uuid;
+        const writeMode = writeCharacteristic.properties.writeWithoutResponse ? 'writeWithoutResponse' : 'write';
+        log(`Printer Ready! Characteristic: ${charUuid} (${writeMode})`, 'success');
+
+        setStatus('connected', `Printer: ${bluetoothDevice.name || 'Generic BLE Printer'} | UUID: ${charUuid.slice(0, 8)}... | Mode: ${writeMode}`);
+        return true;
+
+      } catch (error) {
+        log(`Connection failed: ${error.name} - ${error.message}`, 'error');
+        setStatus('disconnected');
+        if (error.name !== 'NotFoundError') { // User didn't just dismiss the dialog
+          alert(`Bluetooth Connection Error:\n\n${error.message}\n\nMake sure your printer is turned on, Bluetooth and Location are active on your phone, and no other device is currently connected to it.`);
+        }
+        return false;
+      }
+    }
+
+    // Dynamic Discovery: Find any characteristic with write capability
+    async function findWritableCharacteristic(server) {
+      log('Scanning device GATT services for writable characteristic...', 'info');
+      
+      let services = [];
+      try {
+        services = await server.getPrimaryServices();
+      } catch (err) {
+        log(`getPrimaryServices() note: ${err.message}. Trying known services directly...`, 'warn');
+      }
+
+      // If getPrimaryServices was empty or restricted, try querying known UUIDs individually
+      if (!services || services.length === 0) {
+        for (const uuid of KNOWN_PRINTER_SERVICES) {
+          try {
+            const s = await server.getPrimaryService(uuid);
+            if (s) services.push(s);
+          } catch (e) {
+            // service not present on this device, ignore
+          }
+        }
+      }
+
+      log(`Found ${services.length} GATT service(s). Checking characteristics...`, 'info');
+
+      for (const service of services) {
+        try {
+          const chars = await service.getCharacteristics();
+          for (const c of chars) {
+            const p = c.properties;
+            if (p.write || p.writeWithoutResponse) {
+              log(`Matched writable characteristic: ${c.uuid} (write: ${p.write}, writeWithoutResponse: ${p.writeWithoutResponse})`, 'info');
+              return c;
+            }
+          }
+        } catch (e) {
+          log(`Skipping service ${service.uuid}: ${e.message}`, 'warn');
+        }
+      }
+
+      return null;
+    }
+
+    // Disconnect Handler
+    function disconnectPrinter() {
+      if (bluetoothDevice && bluetoothDevice.gatt.connected) {
+        log('Disconnecting printer...', 'info');
+        bluetoothDevice.gatt.disconnect();
+      }
+      onDisconnected();
+    }
+
+    function onDisconnected() {
+      log('Printer disconnected.', 'warn');
+      setStatus('disconnected');
+      writeCharacteristic = null;
+      gattServer = null;
+    }
+
+    // Send Raw ESC/POS Byte Buffer with BLE MTU Chunking
+    async function sendEscPosData(uint8Data) {
+      if (!writeCharacteristic) {
+        throw new Error('Printer not connected. Please connect printer first.');
+      }
+
+      const totalBytes = uint8Data.length;
+      log(`Transmitting ${totalBytes} ESC/POS bytes via BLE...`, 'info');
+
+      // 20-byte chunks are universally safe across BLE 4.0 / 4.2 / 5.0 MTU limits
+      const CHUNK_SIZE = 20;
+      let sentBytes = 0;
+
+      for (let offset = 0; offset < totalBytes; offset += CHUNK_SIZE) {
+        const chunk = uint8Data.slice(offset, offset + CHUNK_SIZE);
+
+        if (writeCharacteristic.properties.writeWithoutResponse) {
+          await writeCharacteristic.writeValueWithoutResponse(chunk);
+        } else {
+          await writeCharacteristic.writeValue(chunk);
+        }
+
+        sentBytes += chunk.length;
+
+        // Small delay (15-20ms) allows printer MCU buffer to drain smoothly without dropouts
+        await new Promise(resolve => setTimeout(resolve, 20));
+      }
+
+      log(`Successfully sent all ${sentBytes} bytes!`, 'success');
+    }
+
+    /**
+     * ESC/POS Command Generator & Text Formatter
+     */
+    class EscPosBuilder {
+      constructor(widthCols = 32) {
+        this.width = widthCols;
+        this.buffer = [];
+        this.encoder = new TextEncoder();
+      }
+
+      // Append raw byte or byte array
+      raw(bytes) {
+        if (Array.isArray(bytes)) {
+          this.buffer.push(...bytes);
+        } else {
+          this.buffer.push(bytes);
+        }
+        return this;
+      }
+
+      // Initialize printer (ESC @)
+      init() {
+        return this.raw([0x1B, 0x40]);
+      }
+
+      // Align: 'left', 'center', 'right'
+      align(pos) {
+        const alignMap = { left: 0, center: 1, right: 2 };
+        const val = alignMap[pos] !== undefined ? alignMap[pos] : 0;
+        return this.raw([0x1B, 0x61, val]);
+      }
+
+      // Bold toggle: true / false
+      bold(enable = true) {
+        return this.raw([0x1B, 0x45, enable ? 0x01 : 0x00]);
+      }
+
+      // Font size: 'normal', 'double-height', 'double-size'
+      size(type = 'normal') {
+        if (type === 'double-size') {
+          return this.raw([0x1D, 0x21, 0x11]); // 2x width & 2x height
+        } else if (type === 'double-height') {
+          return this.raw([0x1D, 0x21, 0x01]);
+        }
+        return this.raw([0x1D, 0x21, 0x00]); // normal
+      }
+
+      // Line Feed (LF)
+      feed(lines = 1) {
+        for (let i = 0; i < lines; i++) {
+          this.raw(0x0A);
+        }
+        return this;
+      }
+
+      // Append text line (ASCII / UTF-8)
+      textLine(str = '') {
+        const bytes = this.encoder.encode(str + '\n');
+        this.raw(Array.from(bytes));
+        return this;
+      }
+
+      // Draw dashed horizontal line
+      dashedLine(char = '-') {
+        return this.textLine(char.repeat(this.width));
+      }
+
+      // Draw two-column justified row: [Left Text ............. Right Text]
+      twoColumn(leftText, rightText) {
+        leftText = String(leftText);
+        rightText = String(rightText);
+
+        const available = this.width - rightText.length;
+        if (leftText.length > available - 1) {
+          leftText = leftText.substring(0, available - 2) + ' ';
+        }
+
+        const spacesCount = Math.max(1, this.width - leftText.length - rightText.length);
+        const line = leftText + ' '.repeat(spacesCount) + rightText;
+        return this.textLine(line);
+      }
+
+      // Item row: Name on line 1, indented Qty x Price + Amount on line 2
+      itemRow(name, qtyPrice, amount) {
+        this.bold(true).textLine(name).bold(false);
+        this.twoColumn('  ' + qtyPrice, amount);
+        return this;
+      }
+
+      // Cut paper command (GS V 66 0)
+      cut() {
+        return this.raw([0x1D, 0x56, 0x42, 0x00]);
+      }
+
+      // Sound buzzer / beep (ESC B n t)
+      beep() {
+        return this.raw([0x1B, 0x42, 0x02, 0x02]);
+      }
+
+      // Compile to Uint8Array
+      build() {
+        return new Uint8Array(this.buffer);
+      }
+    }
+
+    // Build the sample shop receipt
+    function buildShopBill(widthCols) {
+      const builder = new EscPosBuilder(widthCols);
+
+      updateReceiptDateTime();
+      const dateStr = rcDateTime ? rcDateTime.textContent : '14/09/2026';
+
+      builder
+        .init()
+        .align('center')
+        .bold(true)
+        .size('double-size')
+        .textLine('METRO SUPERMARKET')
+        .size('normal')
+        .bold(false)
+        .textLine('123 Commercial Road, City Center')
+        .textLine('Tel: +91 98765 43210')
+        .textLine('GSTIN: 32AABCF1234F1Z8')
+        .dashedLine('-')
+        .align('left')
+        .twoColumn('RC NO: #BX-8942', dateStr)
+        .twoColumn('Cashier: Counter 01', 'POS-BLE')
+        .dashedLine('-')
+        // Items
+        .itemRow('Organic Fresh Milk 1L', '2 x $3.50', '$7.00')
+        .itemRow('Whole Wheat Bread 400g', '1 x $2.20', '$2.20')
+        .itemRow('Arabica Coffee Beans 250g', '1 x $12.50', '$12.50')
+        .itemRow('Greek Yogurt Plain 500g', '2 x $4.00', '$8.00')
+        .itemRow('Belgian Dark Chocolate 100g', '3 x $2.80', '$8.40')
+        .dashedLine('-')
+        // Totals
+        .twoColumn('Total Items:', '5 (9 units)')
+        .twoColumn('Sub Total:', '$38.10')
+        .twoColumn('Tax (8%):', '$3.05')
+        .dashedLine('=')
+        .bold(true)
+        .size('double-height')
+        .twoColumn('GRAND TOTAL:', '$41.15')
+        .size('normal')
+        .bold(false)
+        .dashedLine('=')
+        .twoColumn('Payment: CASH', '$50.00')
+        .twoColumn('Change Given:', '$8.85')
+        .dashedLine('-')
+        // Footer
+        .align('center')
+        .bold(true)
+        .textLine('*** THANK YOU! VISIT AGAIN ***')
+        .bold(false)
+        .textLine('Returns accepted within 7 days')
+        .textLine('with original cash receipt')
+        .feed(1)
+        .textLine('* * * * * * * * * *')
+        .feed(currentPaperWidth === '80mm' ? 4 : 3); // Extra feed ensures receipt clears the tear bar
+
+      if (currentPaperWidth === '80mm') {
+        builder.cut(); // Auto cut for 80mm cutters
+      }
+
+      return builder.build();
+    }
+
+    // Print Bill Action
+    async function printBill() {
+      if (isPrinting) return;
+
+      try {
+        // Ensure connected
+        if (!writeCharacteristic || !bluetoothDevice || !bluetoothDevice.gatt.connected) {
+          log('Printer not connected. Prompting device picker...', 'info');
+          const ok = await connectPrinter();
+          if (!ok) return;
+        }
+
+        isPrinting = true;
+        btnPrintBill.disabled = true;
+        btnPrintBill.querySelector('span').textContent = 'PRINTING...';
+
+        const cols = currentPaperWidth === '58mm' ? 32 : 48;
+        log(`Generating ESC/POS receipt payload (${cols} columns)...`, 'info');
+        
+        const payload = buildShopBill(cols);
+        log(`Receipt compiled: ${payload.length} bytes.`, 'info');
+
+        await sendEscPosData(payload);
+
+        log('Print job completed successfully! Check printer paper output.', 'success');
+
+      } catch (error) {
+        log(`Printing Error: ${error.message}`, 'error');
+        alert(`Printing failed:\n\n${error.message}`);
+      } finally {
+        isPrinting = false;
+        btnPrintBill.disabled = false;
+        btnPrintBill.querySelector('span').textContent = 'PRINT BILL';
+      }
+    }
+
+    // Feed Paper Action
+    async function feedPaper() {
+      try {
+        if (!writeCharacteristic) {
+          const ok = await connectPrinter();
+          if (!ok) return;
+        }
+        log('Sending paper feed command (3 lines)...', 'info');
+        const b = new EscPosBuilder();
+        b.feed(3);
+        await sendEscPosData(b.build());
+        log('Paper feed command sent.', 'success');
+      } catch (e) {
+        log(`Feed failed: ${e.message}`, 'error');
+      }
+    }
+
+    // 1-Line Self-Test Action
+    async function printSelfTest() {
+      try {
+        if (!writeCharacteristic) {
+          const ok = await connectPrinter();
+          if (!ok) return;
+        }
+        const cols = currentPaperWidth === '58mm' ? 32 : 48;
+        log('Printing 1-line self test...', 'info');
+        const b = new EscPosBuilder(cols);
+        b.init()
+         .align('center')
+         .bold(true)
+         .textLine('BILLEX TEST OK - ' + new Date().toLocaleTimeString())
+         .feed(3);
+        await sendEscPosData(b.build());
+        log('1-Line test printed!', 'success');
+      } catch (e) {
+        log(`Self test error: ${e.message}`, 'error');
+      }
+    }
+
+    // Beep / Buzzer Action
+    async function sendPrinterBeep() {
+      try {
+        if (!writeCharacteristic) {
+          const ok = await connectPrinter();
+          if (!ok) return;
+        }
+        log('Sending buzzer/beep command...', 'info');
+        const b = new EscPosBuilder();
+        b.beep();
+        await sendEscPosData(b.build());
+        log('Beep command sent.', 'success');
+      } catch (e) {
+        log(`Beep error: ${e.message}`, 'error');
+      }
+    }
+
+    // Button Listeners
+    btnConnect.addEventListener('click', () => {
+      if (bluetoothDevice && bluetoothDevice.gatt && bluetoothDevice.gatt.connected) {
+        disconnectPrinter();
+      } else {
+        connectPrinter();
+      }
+    });
+
+    btnPrintBill.addEventListener('click', printBill);
+    btnFeed.addEventListener('click', feedPaper);
+
+    // Initial check
+    window.addEventListener('DOMContentLoaded', () => {
+      checkEnvironment();
+    });
+  </script>
+</body>
+</html>
