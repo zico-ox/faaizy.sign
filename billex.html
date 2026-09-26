@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>billex - Thermal Printer Bluetooth Test</title>
+  <title>EXEO EX58P - Thermal Bluetooth Print Test</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -18,11 +18,12 @@
       --primary-glow: rgba(46, 160, 67, 0.35);
       --accent: #58a6ff;
       --accent-hover: #79c0ff;
+      --accent-dim: rgba(88, 166, 255, 0.12);
       --danger: #f85149;
       --warning: #d29922;
       --text-main: #f0f6fc;
       --text-muted: #8b949e;
-      --receipt-bg: #fbfbf9;
+      --receipt-bg: #fafaf7;
       --receipt-ink: #111111;
       --receipt-border: #d3d3cd;
       --font-ui: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -44,7 +45,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 16px 12px 48px;
+      padding: 16px 12px 64px;
     }
 
     .app-container {
@@ -52,20 +53,20 @@
       max-width: 480px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
     /* Header */
     .header {
       text-align: center;
-      padding: 8px 0;
+      padding: 6px 0;
     }
 
     .brand-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(88, 166, 255, 0.12);
+      background: var(--accent-dim);
       border: 1px solid rgba(88, 166, 255, 0.3);
       color: var(--accent);
       padding: 4px 12px;
@@ -87,9 +88,78 @@
     }
 
     .subtitle {
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       color: var(--text-muted);
       margin-top: 4px;
+    }
+
+    /* Print Method Switcher Card */
+    .method-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .method-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .method-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .method-btn {
+      padding: 8px 10px;
+      background: #0d1117;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-family: var(--font-ui);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .method-btn .sub {
+      font-size: 0.68rem;
+      font-weight: 400;
+      opacity: 0.8;
+    }
+
+    .method-btn.active {
+      background: rgba(88, 166, 255, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .bridge-detected-banner {
+      background: rgba(46, 160, 67, 0.15);
+      border: 1px solid rgba(46, 160, 67, 0.4);
+      color: var(--primary-hover);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: none;
+      align-items: center;
+      gap: 6px;
     }
 
     /* System Status Card */
@@ -100,7 +170,7 @@
       padding: 14px 16px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
     .status-row {
@@ -115,6 +185,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      font-weight: 500;
     }
 
     .status-indicator {
@@ -203,7 +274,7 @@
       font-weight: 700;
     }
 
-    /* Controls & Options */
+    /* Controls Grid */
     .controls-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -217,7 +288,7 @@
       font-family: var(--font-ui);
       font-weight: 600;
       font-size: 0.95rem;
-      padding: 12px 16px;
+      padding: 12px 14px;
       border-radius: 12px;
       cursor: pointer;
       display: flex;
@@ -256,45 +327,21 @@
       font-size: 0.88rem;
     }
 
-    /* Paper Width Switcher */
-    .config-strip {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 10px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-    }
-
-    .pill-selector {
-      display: inline-flex;
-      background: #0d1117;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 2px;
-    }
-
-    .pill-btn {
-      padding: 4px 12px;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      font-size: 0.8rem;
-      font-weight: 600;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .pill-btn.active {
-      background: var(--accent);
-      color: #0d1117;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    .btn-config:hover {
+      background: #30363d;
+      color: var(--text-main);
     }
 
     /* Thermal Bill Paper Preview */
+    .receipt-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      padding: 0 4px;
+    }
+
     .receipt-container {
       position: relative;
       filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.5));
@@ -306,19 +353,13 @@
       font-family: var(--font-mono);
       font-size: 11.5px;
       line-height: 1.35;
-      padding: 24px 18px 28px;
+      padding: 22px 16px 26px;
       border-radius: 6px 6px 0 0;
       box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.04);
       position: relative;
       overflow: hidden;
-      transition: max-width 0.3s ease;
       margin: 0 auto;
-      max-width: 320px; /* 58mm preview simulation */
-    }
-
-    .receipt-card.width-80mm {
-      max-width: 440px; /* 80mm preview simulation */
-      font-size: 12px;
+      max-width: 310px; /* 58mm preview simulation (32 chars) */
     }
 
     /* Jagged Paper Tear Effect */
@@ -340,12 +381,7 @@
       background-size: 12px 12px;
       background-position: left top;
       margin: 0 auto;
-      max-width: 320px;
-      transition: max-width 0.3s ease;
-    }
-
-    .receipt-card.width-80mm + .receipt-tear {
-      max-width: 440px;
+      max-width: 310px;
     }
 
     .rc-center {
@@ -365,14 +401,14 @@
 
     .rc-divider {
       border-top: 1px dashed #777;
-      margin: 8px 0;
+      margin: 7px 0;
     }
 
     .rc-double-divider {
       border-top: 1px double #333;
       border-bottom: 1px double #333;
       height: 3px;
-      margin: 8px 0;
+      margin: 7px 0;
     }
 
     .rc-row {
@@ -402,10 +438,10 @@
     }
 
     .rc-barcode {
-      margin: 12px auto 6px;
+      margin: 10px auto 4px;
       text-align: center;
       letter-spacing: 3px;
-      font-size: 14px;
+      font-size: 13px;
       background: #000;
       color: #fff;
       display: inline-block;
@@ -418,7 +454,7 @@
       position: sticky;
       bottom: 12px;
       z-index: 100;
-      margin-top: 8px;
+      margin-top: 4px;
     }
 
     .btn-print {
@@ -448,6 +484,33 @@
     .btn-print svg {
       width: 26px;
       height: 26px;
+    }
+
+    /* Quick Test / Feed buttons */
+    .aux-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-aux {
+      flex: 1;
+      padding: 9px 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      background: #1c2128;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-aux:hover {
+      background: #272d37;
+      color: var(--text-main);
     }
 
     /* Diagnostic Console / Logs */
@@ -499,7 +562,7 @@
       font-size: 0.72rem;
       line-height: 1.45;
       padding: 10px 12px;
-      max-height: 160px;
+      max-height: 180px;
       overflow-y: auto;
       color: #c9d1d9;
       display: flex;
@@ -523,30 +586,7 @@
     .log-msg.warn { color: #d29922; }
     .log-msg.error { color: #f85149; font-weight: 700; }
 
-    /* Quick Test / Feed buttons */
-    .aux-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn-aux {
-      flex: 1;
-      padding: 9px 12px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      background: #1c2128;
-      border: 1px solid var(--card-border);
-      color: var(--text-muted);
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .btn-aux:hover {
-      background: #272d37;
-      color: var(--text-main);
-    }
-
-    /* Modal / Info Drawer */
+    /* Architecture Modal / Info */
     .faq-section {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -581,6 +621,16 @@
     .faq-content li {
       margin-bottom: 4px;
     }
+
+    .code-badge {
+      background: #0d1117;
+      border: 1px solid var(--card-border);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+    }
   </style>
 </head>
 <body>
@@ -591,29 +641,53 @@
     <header class="header">
       <div class="brand-badge">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
-        Direct ESC/POS Print Tester
+        EXEO EX58P • 58mm ESC/POS
       </div>
-      <h1 class="title">billex</h1>
-      <p class="subtitle">Mobile Bluetooth thermal printer test page</p>
+      <h1 class="title">billex demo</h1>
+      <p class="subtitle">Direct Android Bluetooth Thermal Receipt Tester</p>
     </header>
 
-    <!-- Context Warning Alerts (Dynamic) -->
+    <!-- Native Bridge Auto-Detected Banner -->
+    <div id="bridgeBanner" class="bridge-detected-banner">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      <span>Android Native WebView Bridge Detected (Instant 1-Tap SPP)</span>
+    </div>
+
+    <!-- Context Alerts -->
     <div id="securityAlert" class="alert-banner">
-      <strong>⚠️ Secure Context Required</strong>
-      <span id="securityAlertMsg">Web Bluetooth requires an HTTPS connection or localhost. If you are opening this via HTTP (e.g. <code>http://192.168.x.x</code>), Android Chrome will block Bluetooth access.</span>
+      <strong>⚠️ HTTPS or Localhost Required for Web Bluetooth</strong>
+      <span>Chrome blocks direct Web Bluetooth on plain HTTP URLs (e.g. <code>http://192.168.x.x</code>). Serve via HTTPS, use GitHub Pages/Vercel, or switch to the <strong>Android Intent Bridge</strong> mode below.</span>
     </div>
 
     <div id="unsupportedAlert" class="alert-banner error">
-      <strong>❌ Web Bluetooth Not Available</strong>
-      <span id="unsupportedAlertMsg">Your current browser does not support the Web Bluetooth API. Please use <strong>Google Chrome on Android</strong>.</span>
+      <strong>❌ Web Bluetooth Not Available in this Browser</strong>
+      <span>Web Bluetooth is only supported on Google Chrome on Android. For other browsers, use the <strong>Android Intent Bridge (RawBT)</strong> mode.</span>
     </div>
 
-    <!-- Printer Connection Card -->
+    <!-- Print Method Selection -->
+    <div class="method-card">
+      <div class="method-label">
+        <span>Bluetooth Communication Route</span>
+        <span id="activeMethodLabel" style="color: var(--accent);">Web Bluetooth (BLE)</span>
+      </div>
+      <div class="method-options">
+        <button id="btnMethodBle" class="method-btn active" onclick="selectMethod('ble')">
+          <span>Web Bluetooth (BLE)</span>
+          <span class="sub">Direct Chrome API (Zero Install)</span>
+        </button>
+        <button id="btnMethodIntent" class="method-btn" onclick="selectMethod('intent')">
+          <span>Android Intent (SPP)</span>
+          <span class="sub">Classic Bluetooth via RawBT</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Printer Connection & Status Card -->
     <div class="status-card">
       <div class="status-row">
         <span class="status-label">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5l11 11L12 23V1l5.5 5.5-11 11"/></svg>
-          Printer Status
+          EXEO EX58P Status
         </span>
         <div id="statusBadge" class="status-indicator status-disconnected">
           <span class="status-dot"></span>
@@ -629,123 +703,88 @@
           <span id="btnConnectText">Connect Printer</span>
         </button>
 
-        <button id="btnFeed" class="btn btn-config" title="Feed 3 blank lines to test mechanical paper feed">
+        <button id="btnFeed" class="btn btn-config" title="Feed 4 blank lines for manual tear-off">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-          Feed Paper
+          Feed 4 Lines
         </button>
       </div>
     </div>
 
-    <!-- Configuration Strip -->
-    <div class="config-strip">
-      <span>Paper Width Format:</span>
-      <div class="pill-selector">
-        <button id="pill58mm" class="pill-btn active" onclick="setPaperWidth('58mm')">58mm (32c)</button>
-        <button id="pill80mm" class="pill-btn" onclick="setPaperWidth('80mm')">80mm (48c)</button>
-      </div>
+    <!-- Receipt Header Strip -->
+    <div class="receipt-section-header">
+      <span>58mm ESC/POS Receipt Preview (32 Columns)</span>
+      <span style="font-family: var(--font-mono); font-size: 0.74rem; color: var(--accent);">EX58P Format</span>
     </div>
 
-    <!-- Live Bill Receipt Preview -->
+    <!-- Live Bill Receipt Preview (Simulating 58mm Paper) -->
     <div class="receipt-container">
       <div id="receiptPreview" class="receipt-card">
-        <div class="rc-center rc-title">METRO SUPERMARKET</div>
-        <div class="rc-center">123 Commercial Road, City Center</div>
-        <div class="rc-center">Tel: +91 98765 43210</div>
-        <div class="rc-center">GSTIN: 32AABCF1234F1Z8</div>
+        <div class="rc-center rc-title">FASHION &amp; CAFE</div>
+        <div class="rc-center">EXEO EX58P Test Store</div>
+        <div class="rc-center">Phone: +91 98765 43210</div>
 
         <div class="rc-divider"></div>
 
         <div class="rc-row">
-          <span>RC NO: #BX-8942</span>
-          <span id="rcDateTime">14/09/2026 23:30</span>
+          <span>BILL: #BX-0101</span>
+          <span id="rcDateTime">25/09/2026 15:10</span>
         </div>
         <div class="rc-row">
-          <span>Cashier: Counter 01</span>
-          <span>POS-BLE</span>
+          <span>Mode: Counter POS</span>
+          <span>58mm / 203DPI</span>
         </div>
 
         <div class="rc-divider"></div>
 
-        <!-- Bill Line Items -->
+        <!-- Exact Demo Products Requested -->
         <div class="rc-item">
-          <div class="rc-item-name">Organic Fresh Milk 1L</div>
+          <div class="rc-item-name">T-Shirt</div>
           <div class="rc-item-sub">
-            <span>2 x $3.50</span>
-            <span>$7.00</span>
+            <span>2 x &#8377;250</span>
+            <span>&#8377;500</span>
           </div>
         </div>
 
-        <div class="rc-item">
-          <div class="rc-item-name">Whole Wheat Bread 400g</div>
+        <div class="rc-item" style="margin-top: 4px;">
+          <div class="rc-item-name">Juice</div>
           <div class="rc-item-sub">
-            <span>1 x $2.20</span>
-            <span>$2.20</span>
-          </div>
-        </div>
-
-        <div class="rc-item">
-          <div class="rc-item-name">Arabica Coffee Beans 250g</div>
-          <div class="rc-item-sub">
-            <span>1 x $12.50</span>
-            <span>$12.50</span>
-          </div>
-        </div>
-
-        <div class="rc-item">
-          <div class="rc-item-name">Greek Yogurt Plain 500g</div>
-          <div class="rc-item-sub">
-            <span>2 x $4.00</span>
-            <span>$8.00</span>
-          </div>
-        </div>
-
-        <div class="rc-item">
-          <div class="rc-item-name">Belgian Dark Chocolate 100g</div>
-          <div class="rc-item-sub">
-            <span>3 x $2.80</span>
-            <span>$8.40</span>
+            <span>1 x &#8377;80</span>
+            <span>&#8377;80</span>
           </div>
         </div>
 
         <div class="rc-divider"></div>
 
         <div class="rc-row">
-          <span>Total Items:</span>
-          <span>5 (9 units)</span>
-        </div>
-        <div class="rc-row">
-          <span>Sub Total:</span>
-          <span>$38.10</span>
-        </div>
-        <div class="rc-row">
-          <span>Tax (8%):</span>
-          <span>$3.05</span>
+          <span>Items: 2 (3 Units)</span>
+          <span>Sub: &#8377;580</span>
         </div>
 
         <div class="rc-double-divider"></div>
 
         <div class="rc-total-row">
-          <span>GRAND TOTAL:</span>
-          <span>$41.15</span>
+          <span>TOTAL:</span>
+          <span>&#8377;580</span>
         </div>
 
         <div class="rc-double-divider"></div>
 
         <div class="rc-row">
           <span>Payment: CASH</span>
-          <span>$50.00</span>
+          <span>&#8377;580</span>
         </div>
         <div class="rc-row">
-          <span>Change Given:</span>
-          <span>$8.85</span>
+          <span>Balance:</span>
+          <span>&#8377;0</span>
         </div>
 
         <div class="rc-divider"></div>
 
-        <div class="rc-center rc-bold" style="margin-top: 6px;">*** THANK YOU! VISIT AGAIN ***</div>
-        <div class="rc-center" style="font-size: 9.5px; color: #555; margin-top: 3px;">Returns accepted within 7 days with bill</div>
+        <div class="rc-center rc-bold" style="margin-top: 6px;">*** THANK YOU! ***</div>
+        <div class="rc-center" style="font-size: 9.5px; color: #555; margin-top: 2px;">Manual Cutter: Pull along serrated bar</div>
+        
         <div class="rc-center">
-          <div class="rc-barcode">||| | |||| || ||| || ||||</div>
+          <div class="rc-barcode">||| |||| || ||| ||||</div>
         </div>
       </div>
       <div class="receipt-tear"></div>
@@ -758,14 +797,20 @@
           <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
           <path d="M6 14h12v8H6z"/>
         </svg>
-        <span>PRINT BILL</span>
+        <span>PRINT BILL (&#8377;580)</span>
       </button>
     </div>
 
     <!-- Secondary Quick Actions -->
     <div class="aux-actions">
-      <button id="btnSelfTest" class="btn-aux" onclick="printSelfTest()">Print 1-Line Test</button>
-      <button id="btnBeep" class="btn-aux" onclick="sendPrinterBeep()">Printer Buzzer/Beep</button>
+      <button id="btnSelfTest" class="btn-aux" onclick="printSelfTest()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        1-Line Self-Test
+      </button>
+      <button id="btnRawDump" class="btn-aux" onclick="dumpHexPayload()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        View ESC/POS Hex
+      </button>
     </div>
 
     <!-- Diagnostic Log Console -->
@@ -773,32 +818,34 @@
       <div class="console-header">
         <span class="console-title">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-          Bluetooth & ESC/POS Logs
+          Bluetooth &amp; ESC/POS Logs
         </span>
         <button class="btn-clear-log" onclick="clearLogs()">Clear</button>
       </div>
       <div id="consoleBody" class="console-body">
         <div class="log-line">
           <span class="log-time">00:00:00</span>
-          <span class="log-msg info">billex ready. Checking environment...</span>
+          <span class="log-msg info">billex EX58P engine initialized. Ready for test.</span>
         </div>
       </div>
     </div>
 
-    <!-- Instructions & Compatibility FAQ -->
+    <!-- EXEO EX58P Technical Architecture Guide -->
     <details class="faq-section">
-      <summary>💡 Hardware & Browser Requirements</summary>
+      <summary>🔍 EXEO EX58P Android Printing Architecture</summary>
       <div class="faq-content">
-        <p><strong>1. Required Browser:</strong> Google Chrome on Android (v56+).</p>
-        <p><strong>2. Protocol:</strong> Must be served via <code>HTTPS</code> or <code>localhost</code> (Web Bluetooth security requirement).</p>
-        <p><strong>3. Thermal Printer Type:</strong> Portable or desktop ESC/POS thermal printer equipped with <strong>Bluetooth Low Energy (BLE)</strong>.</p>
-        <p><strong>4. How to pair:</strong>
-          <ul>
-            <li>Turn on your thermal printer and verify Bluetooth is active (blue LED flashing or steady).</li>
-            <li>Enable <strong>Bluetooth</strong> and <strong>Location</strong> (required by Android for BLE scanning) on your Android phone.</li>
-            <li>Tap <strong>"Connect Printer"</strong> or <strong>"PRINT BILL"</strong>. Select your printer in the Chrome device chooser popup.</li>
-          </ul>
-        </p>
+        <p><strong>1. Why Web Bluetooth alone is unpredictable for EX58P:</strong><br>
+        Portable thermal printers like the EXEO EX58P (203 DPI, 58mm) primarily use <strong>Bluetooth Classic SPP (RFCOMM)</strong> on Android. Google Chrome's Web Bluetooth API (<code>navigator.bluetooth</code>) <em>only</em> connects to Bluetooth Low Energy (BLE / GATT). It cannot open Bluetooth Classic SPP sockets.</p>
+
+        <p><strong>2. The 3 Supported Printing Paths:</strong></p>
+        <ul>
+          <li><strong>Path A: Web Bluetooth (BLE)</strong> - Works directly in Chrome if your specific EX58P hardware version has BLE advertising enabled. Requires HTTPS or localhost.</li>
+          <li><strong>Path B: Android Intent (RawBT / SPP)</strong> - Works instantly on any Android phone without compiling an app. Uses the standard Android Bluetooth Classic SPP profile. Clicking "PRINT BILL" passes raw ESC/POS bytes directly to the printer in ~1 second.</li>
+          <li><strong>Path C: Smallest Android WebView Wrapper</strong> - A tiny 2MB custom Android app that wraps this billing web page. Injects <code>window.AndroidPrinter.print(base64)</code> so printing is 100% direct and silent.</li>
+        </ul>
+
+        <p><strong>3. ESC/POS Encoding Notice:</strong><br>
+        Standard 58mm thermal printers do not have the Indian Rupee symbol (<span class="code-badge">&#8377;</span>) in their default code pages (CP437). On the printed thermal paper, we automatically print <span class="code-badge">Rs.</span> to prevent printer garbled text like <code>â‚¹</code>.</p>
       </div>
     </details>
 
@@ -806,20 +853,22 @@
 
   <script>
     /**
-     * billex - Web Bluetooth ESC/POS Direct Thermal Printer Controller
+     * billex - EXEO EX58P Direct Thermal Printer Controller
+     * Target: Android Mobile Phone + EXEO EX58P (58mm ESC/POS)
      */
 
     // State Variables
+    let currentMethod = 'ble'; // 'ble' or 'intent'
     let bluetoothDevice = null;
     let gattServer = null;
     let writeCharacteristic = null;
-    let currentPaperWidth = '58mm'; // '58mm' (32 cols) or '80mm' (48 cols)
     let isPrinting = false;
 
-    // Common Thermal Printer BLE GATT Service UUIDs
+    // Comprehensive list of known BLE GATT services for portable POS printers
+    // (ISSC UART, Nordic UART, Generic POS, Telink, etc.)
     const KNOWN_PRINTER_SERVICES = [
       '000018f0-0000-1000-8000-00805f9b34fb', // Standard Printer Service
-      '49535343-fe7d-4ae5-8fa9-9fafd205e455', // ISSC Transparent UART (Microchip/Generic Chinese)
+      '49535343-fe7d-4ae5-8fa9-9fafd205e455', // ISSC Transparent UART (Microchip/Generic Chinese POS)
       '0000ff00-0000-1000-8000-00805f9b34fb', // Generic POS FF00
       '0000ae00-0000-1000-8000-00805f9b34fb', // Generic AE00
       '0000af00-0000-1000-8000-00805f9b34fb', // Generic AF00
@@ -845,10 +894,11 @@
     const securityAlert = document.getElementById('securityAlert');
     const unsupportedAlert = document.getElementById('unsupportedAlert');
     const consoleBody = document.getElementById('consoleBody');
-    const receiptPreview = document.getElementById('receiptPreview');
-    const pill58mm = document.getElementById('pill58mm');
-    const pill80mm = document.getElementById('pill80mm');
     const rcDateTime = document.getElementById('rcDateTime');
+    const bridgeBanner = document.getElementById('bridgeBanner');
+    const activeMethodLabel = document.getElementById('activeMethodLabel');
+    const btnMethodBle = document.getElementById('btnMethodBle');
+    const btnMethodIntent = document.getElementById('btnMethodIntent');
 
     // Update real-time receipt date/time
     function updateReceiptDateTime() {
@@ -856,6 +906,7 @@
       const pad = (n) => String(n).padStart(2, '0');
       const formatted = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
       if (rcDateTime) rcDateTime.textContent = formatted;
+      return formatted;
     }
     updateReceiptDateTime();
 
@@ -876,7 +927,7 @@
 
     function clearLogs() {
       consoleBody.innerHTML = '';
-      log('Logs cleared.', 'info');
+      log('Diagnostic logs cleared.', 'info');
     }
 
     function escapeHtml(str) {
@@ -884,41 +935,52 @@
       return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    // Check Browser & Security Context
+    // Method Switcher
+    function selectMethod(method) {
+      currentMethod = method;
+      if (method === 'ble') {
+        btnMethodBle.classList.add('active');
+        btnMethodIntent.classList.remove('active');
+        activeMethodLabel.textContent = 'Web Bluetooth (BLE)';
+        btnConnect.style.display = 'flex';
+        log('Switched to Web Bluetooth (BLE) mode. Requires direct Chrome GATT pairing.', 'info');
+      } else {
+        btnMethodIntent.classList.add('active');
+        btnMethodBle.classList.remove('active');
+        activeMethodLabel.textContent = 'Android Intent (RawBT / SPP)';
+        btnConnect.style.display = 'none';
+        setStatus('connected', 'Intent Bridge Ready: RawBT / Bluetooth SPP');
+        log('Switched to Android Intent (RawBT) mode. Uses Bluetooth Classic SPP.', 'info');
+      }
+    }
+
+    // Environment & Bridge Check
     function checkEnvironment() {
+      // 1. Check if running inside our custom Android WebView wrapper
+      if (window.AndroidPrinter || window.AndroidBridge) {
+        bridgeBanner.style.display = 'flex';
+        setStatus('connected', 'Native Android SPP Bridge Connected');
+        log('SUCCESS: Native Android WebView Bluetooth Bridge detected!', 'success');
+        return;
+      }
+
+      // 2. Check Web Bluetooth availability
       const isSecure = window.isSecureContext;
       const hasBluetooth = 'bluetooth' in navigator;
 
-      log(`Context: ${isSecure ? 'Secure (HTTPS/localhost)' : 'Insecure (HTTP)'}`, isSecure ? 'info' : 'warn');
-      log(`navigator.bluetooth: ${hasBluetooth ? 'Available' : 'NOT Supported'}`, hasBluetooth ? 'info' : 'error');
+      log(`Origin Context: ${isSecure ? 'Secure (HTTPS/localhost)' : 'Insecure (HTTP)'}`, isSecure ? 'info' : 'warn');
+      log(`navigator.bluetooth: ${hasBluetooth ? 'Supported' : 'Not available'}`, hasBluetooth ? 'info' : 'warn');
 
-      if (!isSecure) {
+      if (!isSecure && location.protocol !== 'file:') {
         securityAlert.style.display = 'block';
-        log('WARNING: Chrome blocks Web Bluetooth in non-secure HTTP origins.', 'warn');
+        log('WARNING: Non-secure HTTP origin. Chrome will reject Web Bluetooth.', 'warn');
       }
 
       if (!hasBluetooth) {
         unsupportedAlert.style.display = 'block';
-        btnConnect.disabled = true;
-        btnPrintBill.disabled = true;
-        btnFeed.disabled = true;
-        log('CRITICAL: Web Bluetooth API is not available on this browser/platform.', 'error');
-      }
-    }
-
-    // Paper width selector
-    function setPaperWidth(width) {
-      currentPaperWidth = width;
-      if (width === '58mm') {
-        pill58mm.classList.add('active');
-        pill80mm.classList.remove('active');
-        receiptPreview.classList.remove('width-80mm');
-        log('Paper format set to 58mm (32 characters/line)', 'info');
-      } else {
-        pill80mm.classList.add('active');
-        pill58mm.classList.remove('active');
-        receiptPreview.classList.add('width-80mm');
-        log('Paper format set to 80mm (48 characters/line)', 'info');
+        // Auto-switch to Intent mode if Web Bluetooth is unavailable
+        selectMethod('intent');
+        log('Note: Web Bluetooth not found. Automatically selected Android Intent (RawBT) mode.', 'warn');
       }
     }
 
@@ -948,19 +1010,19 @@
       }
     }
 
-    // Connect to Bluetooth Thermal Printer
+    // Connect via Web Bluetooth (BLE)
     async function connectPrinter() {
       if (!('bluetooth' in navigator)) {
         log('Web Bluetooth is not supported on this browser.', 'error');
-        alert('Web Bluetooth is not supported. Please open in Google Chrome on Android.');
+        alert('Web Bluetooth is not supported in this browser.\n\nPlease use the "Android Intent (SPP)" mode or open in Google Chrome on Android over HTTPS.');
         return false;
       }
 
       try {
         setStatus('connecting');
-        log('Requesting Bluetooth device (User Chooser)...', 'info');
+        log('Opening Bluetooth device picker...', 'info');
+        log('Look for "EX58P", "MPT-II", "Printer001", or "POS-58"...', 'info');
 
-        // Request device with all known printer services listed in optionalServices
         bluetoothDevice = await navigator.bluetooth.requestDevice({
           acceptAllDevices: true,
           optionalServices: KNOWN_PRINTER_SERVICES
@@ -972,51 +1034,48 @@
 
         log('Connecting to GATT Server...', 'info');
         gattServer = await bluetoothDevice.gatt.connect();
-        log('GATT Server connected! Discovering primary services...', 'info');
+        log('Connected to GATT Server! Discovering writable characteristic...', 'info');
 
-        // Scan services to find writable characteristic
         writeCharacteristic = await findWritableCharacteristic(gattServer);
 
         if (!writeCharacteristic) {
-          throw new Error('No writable ESC/POS characteristic found on this device. Ensure this device is a BLE thermal printer.');
+          throw new Error('No writable ESC/POS characteristic found. The printer might be Bluetooth Classic SPP only.');
         }
 
         const charUuid = writeCharacteristic.uuid;
         const writeMode = writeCharacteristic.properties.writeWithoutResponse ? 'writeWithoutResponse' : 'write';
-        log(`Printer Ready! Characteristic: ${charUuid} (${writeMode})`, 'success');
+        log(`EXEO EX58P Ready! Characteristic: ${charUuid} (${writeMode})`, 'success');
 
-        setStatus('connected', `Printer: ${bluetoothDevice.name || 'Generic BLE Printer'} | UUID: ${charUuid.slice(0, 8)}... | Mode: ${writeMode}`);
+        setStatus('connected', `EXEO EX58P: ${bluetoothDevice.name || 'POS Printer'} | Mode: ${writeMode}`);
         return true;
 
       } catch (error) {
         log(`Connection failed: ${error.name} - ${error.message}`, 'error');
         setStatus('disconnected');
-        if (error.name !== 'NotFoundError') { // User didn't just dismiss the dialog
-          alert(`Bluetooth Connection Error:\n\n${error.message}\n\nMake sure your printer is turned on, Bluetooth and Location are active on your phone, and no other device is currently connected to it.`);
+        if (error.name !== 'NotFoundError') {
+          log('TIP: If EXEO EX58P does not show up in the BLE list, it is operating in Bluetooth Classic SPP mode. Switch to "Android Intent" mode!', 'warn');
+          alert(`Bluetooth Error:\n${error.message}\n\nTip: If EXEO EX58P does not show up, switch to "Android Intent (SPP)" mode which supports Bluetooth Classic!`);
         }
         return false;
       }
     }
 
-    // Dynamic Discovery: Find any characteristic with write capability
+    // Scan GATT services for writable characteristic
     async function findWritableCharacteristic(server) {
-      log('Scanning device GATT services for writable characteristic...', 'info');
-      
       let services = [];
       try {
         services = await server.getPrimaryServices();
       } catch (err) {
-        log(`getPrimaryServices() note: ${err.message}. Trying known services directly...`, 'warn');
+        log(`getPrimaryServices() note: ${err.message}. Probing known UUIDs...`, 'warn');
       }
 
-      // If getPrimaryServices was empty or restricted, try querying known UUIDs individually
       if (!services || services.length === 0) {
         for (const uuid of KNOWN_PRINTER_SERVICES) {
           try {
             const s = await server.getPrimaryService(uuid);
             if (s) services.push(s);
           } catch (e) {
-            // service not present on this device, ignore
+            // Service not present, skip
           }
         }
       }
@@ -1029,7 +1088,7 @@
           for (const c of chars) {
             const p = c.properties;
             if (p.write || p.writeWithoutResponse) {
-              log(`Matched writable characteristic: ${c.uuid} (write: ${p.write}, writeWithoutResponse: ${p.writeWithoutResponse})`, 'info');
+              log(`Found writable characteristic: ${c.uuid} (write: ${p.write}, writeWithoutResponse: ${p.writeWithoutResponse})`, 'info');
               return c;
             }
           }
@@ -1057,7 +1116,7 @@
       gattServer = null;
     }
 
-    // Send Raw ESC/POS Byte Buffer with BLE MTU Chunking
+    // Send Raw ESC/POS via BLE MTU Chunking
     async function sendEscPosData(uint8Data) {
       if (!writeCharacteristic) {
         throw new Error('Printer not connected. Please connect printer first.');
@@ -1080,16 +1139,25 @@
         }
 
         sentBytes += chunk.length;
-
-        // Small delay (15-20ms) allows printer MCU buffer to drain smoothly without dropouts
+        // Small delay (20ms) allows printer MCU buffer to drain smoothly without dropouts
         await new Promise(resolve => setTimeout(resolve, 20));
       }
 
-      log(`Successfully sent all ${sentBytes} bytes!`, 'success');
+      log(`Transmitted ${sentBytes} bytes to EXEO EX58P successfully!`, 'success');
+    }
+
+    // Helper: Convert Uint8Array to Base64
+    function uint8ToBase64(bytes) {
+      let binary = '';
+      const len = bytes.byteLength;
+      for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return window.btoa(binary);
     }
 
     /**
-     * ESC/POS Command Generator & Text Formatter
+     * ESC/POS Command Generator for 58mm (32 Columns)
      */
     class EscPosBuilder {
       constructor(widthCols = 32) {
@@ -1098,7 +1166,6 @@
         this.encoder = new TextEncoder();
       }
 
-      // Append raw byte or byte array
       raw(bytes) {
         if (Array.isArray(bytes)) {
           this.buffer.push(...bytes);
@@ -1113,19 +1180,19 @@
         return this.raw([0x1B, 0x40]);
       }
 
-      // Align: 'left', 'center', 'right'
+      // Alignment: 'left', 'center', 'right'
       align(pos) {
         const alignMap = { left: 0, center: 1, right: 2 };
         const val = alignMap[pos] !== undefined ? alignMap[pos] : 0;
         return this.raw([0x1B, 0x61, val]);
       }
 
-      // Bold toggle: true / false
+      // Bold text toggle
       bold(enable = true) {
         return this.raw([0x1B, 0x45, enable ? 0x01 : 0x00]);
       }
 
-      // Font size: 'normal', 'double-height', 'double-size'
+      // Font sizing: 'normal', 'double-height', 'double-size'
       size(type = 'normal') {
         if (type === 'double-size') {
           return this.raw([0x1D, 0x21, 0x11]); // 2x width & 2x height
@@ -1135,7 +1202,7 @@
         return this.raw([0x1D, 0x21, 0x00]); // normal
       }
 
-      // Line Feed (LF)
+      // Feed lines
       feed(lines = 1) {
         for (let i = 0; i < lines; i++) {
           this.raw(0x0A);
@@ -1143,19 +1210,19 @@
         return this;
       }
 
-      // Append text line (ASCII / UTF-8)
+      // Clean ASCII text line
       textLine(str = '') {
         const bytes = this.encoder.encode(str + '\n');
         this.raw(Array.from(bytes));
         return this;
       }
 
-      // Draw dashed horizontal line
+      // Dashed separator line (32 chars)
       dashedLine(char = '-') {
         return this.textLine(char.repeat(this.width));
       }
 
-      // Draw two-column justified row: [Left Text ............. Right Text]
+      // Two-column layout: [Left Text ................. Right Text]
       twoColumn(leftText, rightText) {
         leftText = String(leftText);
         rightText = String(rightText);
@@ -1170,139 +1237,158 @@
         return this.textLine(line);
       }
 
-      // Item row: Name on line 1, indented Qty x Price + Amount on line 2
-      itemRow(name, qtyPrice, amount) {
-        this.bold(true).textLine(name).bold(false);
-        this.twoColumn('  ' + qtyPrice, amount);
-        return this;
-      }
-
-      // Cut paper command (GS V 66 0)
-      cut() {
-        return this.raw([0x1D, 0x56, 0x42, 0x00]);
-      }
-
-      // Sound buzzer / beep (ESC B n t)
-      beep() {
-        return this.raw([0x1B, 0x42, 0x02, 0x02]);
-      }
-
-      // Compile to Uint8Array
+      // Build byte array
       build() {
         return new Uint8Array(this.buffer);
       }
     }
 
-    // Build the sample shop receipt
-    function buildShopBill(widthCols) {
-      const builder = new EscPosBuilder(widthCols);
-
-      updateReceiptDateTime();
-      const dateStr = rcDateTime ? rcDateTime.textContent : '14/09/2026';
+    /**
+     * Build the EXACT requested Demo Bill:
+     * T-Shirt × 2 = ₹500
+     * Juice × 1 = ₹80
+     * Total = ₹580
+     */
+    function buildDemoBill() {
+      const builder = new EscPosBuilder(32);
+      const dateStr = updateReceiptDateTime();
 
       builder
         .init()
+        // Header
         .align('center')
         .bold(true)
         .size('double-size')
-        .textLine('METRO SUPERMARKET')
+        .textLine('FASHION & CAFE')
         .size('normal')
         .bold(false)
-        .textLine('123 Commercial Road, City Center')
-        .textLine('Tel: +91 98765 43210')
-        .textLine('GSTIN: 32AABCF1234F1Z8')
+        .textLine('EXEO EX58P Test Store')
+        .textLine('Phone: +91 98765 43210')
         .dashedLine('-')
+        // Bill Metadata
         .align('left')
-        .twoColumn('RC NO: #BX-8942', dateStr)
-        .twoColumn('Cashier: Counter 01', 'POS-BLE')
+        .twoColumn('BILL: #BX-0101', dateStr)
+        .twoColumn('Mode: Counter POS', '58mm/203DPI')
         .dashedLine('-')
-        // Items
-        .itemRow('Organic Fresh Milk 1L', '2 x $3.50', '$7.00')
-        .itemRow('Whole Wheat Bread 400g', '1 x $2.20', '$2.20')
-        .itemRow('Arabica Coffee Beans 250g', '1 x $12.50', '$12.50')
-        .itemRow('Greek Yogurt Plain 500g', '2 x $4.00', '$8.00')
-        .itemRow('Belgian Dark Chocolate 100g', '3 x $2.80', '$8.40')
+        // Sample Product 1: T-Shirt x 2 = Rs.500
+        .bold(true).textLine('T-Shirt').bold(false)
+        .twoColumn('  2 x Rs 250', 'Rs 500.00')
+        // Sample Product 2: Juice x 1 = Rs.80
+        .bold(true).textLine('Juice').bold(false)
+        .twoColumn('  1 x Rs 80', 'Rs 80.00')
         .dashedLine('-')
-        // Totals
-        .twoColumn('Total Items:', '5 (9 units)')
-        .twoColumn('Sub Total:', '$38.10')
-        .twoColumn('Tax (8%):', '$3.05')
+        // Subtotal & Units
+        .twoColumn('Items: 2 (3 Units)', 'Sub: Rs 580.00')
         .dashedLine('=')
+        // Grand Total (Emphasized)
         .bold(true)
         .size('double-height')
-        .twoColumn('GRAND TOTAL:', '$41.15')
+        .twoColumn('TOTAL:', 'Rs 580.00')
         .size('normal')
         .bold(false)
         .dashedLine('=')
-        .twoColumn('Payment: CASH', '$50.00')
-        .twoColumn('Change Given:', '$8.85')
+        // Payment
+        .twoColumn('Payment: CASH', 'Rs 580.00')
+        .twoColumn('Balance:', 'Rs 0.00')
         .dashedLine('-')
-        // Footer
+        // Footer & Manual Tear Clearance
         .align('center')
         .bold(true)
-        .textLine('*** THANK YOU! VISIT AGAIN ***')
+        .textLine('*** THANK YOU! ***')
         .bold(false)
-        .textLine('Returns accepted within 7 days')
-        .textLine('with original cash receipt')
-        .feed(1)
-        .textLine('* * * * * * * * * *')
-        .feed(currentPaperWidth === '80mm' ? 4 : 3); // Extra feed ensures receipt clears the tear bar
-
-      if (currentPaperWidth === '80mm') {
-        builder.cut(); // Auto cut for 80mm cutters
-      }
+        .textLine('EXEO EX58P Demo Print OK')
+        // 4 line feeds ensures the receipt clears the manual tear-off bar
+        .feed(4);
 
       return builder.build();
     }
 
-    // Print Bill Action
+    /**
+     * Universal Dispatcher: Print Bill
+     */
     async function printBill() {
       if (isPrinting) return;
 
       try {
-        // Ensure connected
-        if (!writeCharacteristic || !bluetoothDevice || !bluetoothDevice.gatt.connected) {
-          log('Printer not connected. Prompting device picker...', 'info');
-          const ok = await connectPrinter();
-          if (!ok) return;
-        }
-
         isPrinting = true;
         btnPrintBill.disabled = true;
         btnPrintBill.querySelector('span').textContent = 'PRINTING...';
 
-        const cols = currentPaperWidth === '58mm' ? 32 : 48;
-        log(`Generating ESC/POS receipt payload (${cols} columns)...`, 'info');
-        
-        const payload = buildShopBill(cols);
-        log(`Receipt compiled: ${payload.length} bytes.`, 'info');
+        log('Compiling 58mm ESC/POS receipt for EXEO EX58P...', 'info');
+        const payload = buildDemoBill();
+        const base64Data = uint8ToBase64(payload);
+        log(`Compiled ${payload.length} ESC/POS bytes.`, 'info');
+
+        // ROUTE 1: Native Android WebView Bridge
+        if (window.AndroidPrinter && typeof window.AndroidPrinter.print === 'function') {
+          log('Dispatching via window.AndroidPrinter.print()...', 'info');
+          window.AndroidPrinter.print(base64Data);
+          log('Native Android SPP print triggered!', 'success');
+          return;
+        }
+
+        // ROUTE 2: Android Intent Bridge (RawBT / SPP)
+        if (currentMethod === 'intent') {
+          log('Triggering Android Intent for Bluetooth Classic SPP...', 'info');
+          
+          // Primary: rawbt protocol scheme
+          const intentUrl = 'rawbt:data:application/octet-stream;base64,' + base64Data;
+          
+          // Also set fallback Chrome Intent URI
+          const chromeIntentUri = 'intent:base64,' + base64Data + '#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;';
+          
+          log('Launching RawBT printer intent...', 'info');
+          window.location.href = intentUrl;
+          
+          log('Intent dispatched to Android print service!', 'success');
+          return;
+        }
+
+        // ROUTE 3: Direct Web Bluetooth (BLE)
+        if (!writeCharacteristic || !bluetoothDevice || !bluetoothDevice.gatt.connected) {
+          log('Printer not connected in BLE mode. Requesting connection...', 'info');
+          const ok = await connectPrinter();
+          if (!ok) return;
+        }
 
         await sendEscPosData(payload);
-
-        log('Print job completed successfully! Check printer paper output.', 'success');
+        log('Print job sent to EXEO EX58P successfully!', 'success');
 
       } catch (error) {
-        log(`Printing Error: ${error.message}`, 'error');
-        alert(`Printing failed:\n\n${error.message}`);
+        log(`Print failed: ${error.message}`, 'error');
+        alert(`Print Error:\n${error.message}`);
       } finally {
         isPrinting = false;
         btnPrintBill.disabled = false;
-        btnPrintBill.querySelector('span').textContent = 'PRINT BILL';
+        btnPrintBill.querySelector('span').innerHTML = 'PRINT BILL (&#8377;580)';
       }
     }
 
-    // Feed Paper Action
+    // 4-Line Manual Tear Feed Action
     async function feedPaper() {
       try {
+        const b = new EscPosBuilder(32);
+        b.feed(4);
+        const payload = b.build();
+
+        if (window.AndroidPrinter) {
+          window.AndroidPrinter.print(uint8ToBase64(payload));
+          log('Paper feed command dispatched via Android Bridge.', 'success');
+          return;
+        }
+
+        if (currentMethod === 'intent') {
+          window.location.href = 'rawbt:data:application/octet-stream;base64,' + uint8ToBase64(payload);
+          return;
+        }
+
         if (!writeCharacteristic) {
           const ok = await connectPrinter();
           if (!ok) return;
         }
-        log('Sending paper feed command (3 lines)...', 'info');
-        const b = new EscPosBuilder();
-        b.feed(3);
-        await sendEscPosData(b.build());
-        log('Paper feed command sent.', 'success');
+
+        await sendEscPosData(payload);
+        log('Fed 4 lines to clear manual tear bar.', 'success');
       } catch (e) {
         log(`Feed failed: ${e.message}`, 'error');
       }
@@ -1311,43 +1397,49 @@
     // 1-Line Self-Test Action
     async function printSelfTest() {
       try {
+        const b = new EscPosBuilder(32);
+        b.init()
+         .align('center')
+         .bold(true)
+         .textLine('EX58P TEST - ' + new Date().toLocaleTimeString())
+         .feed(4);
+        const payload = b.build();
+
+        if (window.AndroidPrinter) {
+          window.AndroidPrinter.print(uint8ToBase64(payload));
+          log('1-Line test dispatched via Android Bridge.', 'success');
+          return;
+        }
+
+        if (currentMethod === 'intent') {
+          window.location.href = 'rawbt:data:application/octet-stream;base64,' + uint8ToBase64(payload);
+          return;
+        }
+
         if (!writeCharacteristic) {
           const ok = await connectPrinter();
           if (!ok) return;
         }
-        const cols = currentPaperWidth === '58mm' ? 32 : 48;
-        log('Printing 1-line self test...', 'info');
-        const b = new EscPosBuilder(cols);
-        b.init()
-         .align('center')
-         .bold(true)
-         .textLine('BILLEX TEST OK - ' + new Date().toLocaleTimeString())
-         .feed(3);
-        await sendEscPosData(b.build());
-        log('1-Line test printed!', 'success');
+
+        await sendEscPosData(payload);
+        log('1-Line self test printed on EXEO EX58P!', 'success');
       } catch (e) {
         log(`Self test error: ${e.message}`, 'error');
       }
     }
 
-    // Beep / Buzzer Action
-    async function sendPrinterBeep() {
-      try {
-        if (!writeCharacteristic) {
-          const ok = await connectPrinter();
-          if (!ok) return;
-        }
-        log('Sending buzzer/beep command...', 'info');
-        const b = new EscPosBuilder();
-        b.beep();
-        await sendEscPosData(b.build());
-        log('Beep command sent.', 'success');
-      } catch (e) {
-        log(`Beep error: ${e.message}`, 'error');
+    // Hex Payload Inspector
+    function dumpHexPayload() {
+      const payload = buildDemoBill();
+      let hex = '';
+      for (let i = 0; i < payload.length; i++) {
+        hex += payload[i].toString(16).padStart(2, '0').toUpperCase() + ' ';
+        if ((i + 1) % 16 === 0) hex += '\n';
       }
+      log(`=== ESC/POS RAW HEX DUMP (${payload.length} bytes) ===\n` + hex, 'info');
     }
 
-    // Button Listeners
+    // Event Listeners
     btnConnect.addEventListener('click', () => {
       if (bluetoothDevice && bluetoothDevice.gatt && bluetoothDevice.gatt.connected) {
         disconnectPrinter();
@@ -1359,7 +1451,7 @@
     btnPrintBill.addEventListener('click', printBill);
     btnFeed.addEventListener('click', feedPaper);
 
-    // Initial check
+    // Initialization
     window.addEventListener('DOMContentLoaded', () => {
       checkEnvironment();
     });
